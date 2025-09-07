@@ -11,12 +11,12 @@ export default function CTABanner() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 1.0) {
+        if (entry.isIntersecting) {
           setIsVisible(true);
         }
       },
       {
-        threshold: 1.0 // 100% viewport
+        threshold: 0.3 // 30% viewport - более мягкое условие для мобильных
       }
     );
 
@@ -31,28 +31,29 @@ export default function CTABanner() {
     };
   }, []);
   return (
-    <section ref={sectionRef} className="relative py-16 text-white overflow-hidden">
+    <section ref={sectionRef} className="relative py-12 sm:py-16 text-white overflow-hidden">
       {/* Декоративные элементы */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Красные и синие акценты */}
-        <div className="absolute top-16 left-16 w-20 h-20 bg-red-600/12 rounded-full blur-xl animate-pulse" style={{animationDelay: '2.5s'}}></div>
-        <div className="absolute bottom-16 right-16 w-24 h-24 bg-blue-500/10 rounded-full blur-xl animate-pulse" style={{animationDelay: '3.5s'}}></div>
-        <div className="absolute top-1/4 left-1/3 w-16 h-16 bg-red-600/08 rounded-full blur-lg animate-pulse" style={{animationDelay: '1.8s'}}></div>
+        {/* Красные и синие акценты - адаптивные размеры */}
+        <div className="absolute top-8 sm:top-16 left-8 sm:left-16 w-12 h-12 sm:w-20 sm:h-20 bg-red-600/12 rounded-full blur-xl animate-pulse" style={{animationDelay: '2.5s'}}></div>
+        <div className="absolute bottom-8 sm:bottom-16 right-8 sm:right-16 w-16 h-16 sm:w-24 sm:h-24 bg-blue-500/10 rounded-full blur-xl animate-pulse" style={{animationDelay: '3.5s'}}></div>
+        <div className="absolute top-1/4 left-1/4 sm:left-1/3 w-10 h-10 sm:w-16 sm:h-16 bg-red-600/08 rounded-full blur-lg animate-pulse" style={{animationDelay: '1.8s'}}></div>
         
-        {/* Белые линии движения */}
-        <div className="absolute top-24 left-24 w-10 h-0.5 bg-white/12 transform rotate-45"></div>
-        <div className="absolute bottom-24 right-24 w-14 h-0.5 bg-white/12 transform -rotate-45"></div>
-        <div className="absolute top-1/2 right-16 w-6 h-0.5 bg-white/08 transform rotate-45"></div>
+        {/* Белые линии движения - адаптивные позиции */}
+        <div className="absolute top-12 sm:top-24 left-12 sm:left-24 w-6 h-0.5 sm:w-10 sm:h-0.5 bg-white/12 transform rotate-45"></div>
+        <div className="absolute bottom-12 sm:bottom-24 right-12 sm:right-24 w-8 h-0.5 sm:w-14 sm:h-0.5 bg-white/12 transform -rotate-45"></div>
+        <div className="absolute top-1/2 right-8 sm:right-16 w-4 h-0.5 sm:w-6 sm:h-0.5 bg-white/08 transform rotate-45"></div>
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 items-center">
+          {/* На мобильных: баннер и персонаж рядом, на десктопе: в две колонки */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:gap-8 items-center">
             
-            {/* Левая часть - CTA карточка */}
-            <div className="flex justify-center lg:justify-start">
-              <div className="bg-black/90 backdrop-blur-sm rounded-2xl border border-red-500/30 p-14 max-w-xl w-full shadow-2xl">
-                <h2 className="hero-jab-title text-2xl md:text-3xl font-bold text-white mb-4 text-center">
+            {/* CTA карточка */}
+            <div className="flex justify-center lg:justify-start order-1 sm:order-1">
+              <div className="bg-black/90 backdrop-blur-sm rounded-2xl border border-red-500/30 p-3 sm:p-6 md:p-8 lg:p-14 w-full shadow-2xl">
+                <h2 className="hero-jab-title text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 text-center">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
                     ЗАПИШИСЬ НА
                   </span>
@@ -65,14 +66,14 @@ export default function CTABanner() {
                     ЗАНЯТИЕ
                   </span>
                 </h2>
-                <p className="hero-jab-text text-lg text-white mb-6 text-center font-bold">
+                <p className="hero-jab-text text-xs sm:text-base md:text-lg text-white mb-2 sm:mb-4 md:mb-6 text-center font-bold">
                   БЕСПЛАТНО!
                 </p>
                 
                 <div className="text-center">
                   <Link
                     href="#contact"
-                    className="relative px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hero-jab-text text-center cursor-glove bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-red-500/25 hover:from-red-700 hover:to-red-800 inline-block w-full"
+                    className="relative px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl font-bold text-xs sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hero-jab-text text-center cursor-glove bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-red-500/25 hover:from-red-700 hover:to-red-800 inline-block w-full smooth-scroll"
                   >
                     <span className="relative z-10">БОКСИРОВАТЬ</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
@@ -81,8 +82,8 @@ export default function CTABanner() {
               </div>
             </div>
 
-            {/* Правая часть - Изображение */}
-            <div className="relative">
+            {/* Персонаж - рядом с баннером на мобильных */}
+            <div className="relative order-2 sm:order-2 lg:order-2 flex items-center justify-center">
               <div className={`transform transition-all duration-1200 ease-out ${
                 isVisible 
                   ? 'opacity-100 translate-x-0 scale-100 rotate-0' 
@@ -93,7 +94,8 @@ export default function CTABanner() {
                   alt="Тренер JAB указывает на кнопку"
                   width={600}
                   height={600}
-                  className="w-full h-auto object-contain drop-shadow-xl"
+                  style={{ width: "auto", height: "auto" }}
+                  className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 object-contain drop-shadow-xl"
                   priority
                 />
               </div>

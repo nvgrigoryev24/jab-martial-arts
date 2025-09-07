@@ -1,78 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-
-const newsData = [
-  {
-    id: '1',
-    title: 'Новый тренер в команде JAB',
-    excerpt: 'Мы рады представить нашего нового тренера по боксу с 10-летним опытом работы в профессиональном спорте.',
-    content: 'Александр Петров присоединился к нашей команде тренеров. Он имеет звание мастера спорта по боксу и многолетний опыт подготовки спортсменов различного уровня.',
-    image: 'https://picsum.photos/400/250?random=1',
-    date: '2024-01-15',
-    category: 'Команда',
-    author: 'Администрация JAB',
-    isHot: true,
-    reactions: {
-      like: 24,
-      love: 8,
-      fire: 15,
-      clap: 12
-    }
-  },
-  {
-    id: '2',
-    title: 'Турнир по боксу среди любителей',
-    excerpt: 'Приглашаем всех желающих принять участие в нашем внутреннем турнире по боксу.',
-    content: 'Турнир пройдет 25 января в нашем зале. Участие бесплатное для всех членов клуба. Призы и награды для победителей!',
-    image: 'https://picsum.photos/400/250?random=2',
-    date: '2024-01-10',
-    category: 'События',
-    author: 'Организаторы',
-    isHot: false,
-    reactions: {
-      like: 18,
-      love: 5,
-      fire: 8,
-      clap: 6
-    }
-  },
-  {
-    id: '3',
-    title: 'Новое оборудование в зале',
-    excerpt: 'Мы обновили оборудование в нашем зале для еще более эффективных тренировок.',
-    content: 'Установлены новые боксерские мешки, обновлена ринговая площадка и добавлено современное кардио-оборудование.',
-    image: 'https://picsum.photos/400/250?random=3',
-    date: '2024-01-05',
-    category: 'Оборудование',
-    author: 'Техническая служба',
-    isHot: false,
-    reactions: {
-      like: 12,
-      love: 3,
-      fire: 4,
-      clap: 7
-    }
-  },
-  {
-    id: '4',
-    title: 'Мастер-класс от чемпиона',
-    excerpt: 'Приглашаем на мастер-класс от действующего чемпиона России по боксу.',
-    content: 'Уникальная возможность получить советы от профессионала высшего уровня. Мастер-класс состоится 30 января.',
-    image: 'https://picsum.photos/400/250?random=4',
-    date: '2024-01-08',
-    category: 'Мастер-классы',
-    author: 'Пресс-служба',
-    isHot: false,
-    reactions: {
-      like: 31,
-      love: 12,
-      fire: 22,
-      clap: 15
-    }
-  }
-];
+import { getNews, News, NewsCategory, NewsAuthor, NewsReaction, getImageUrl, stripHtmlTags, updateNewsReaction, transparencyToHex } from '@/lib/pocketbase';
+import NewsModal from './NewsModal';
 
 const categories = [
   { id: 'all', name: 'Все новости' },
@@ -83,28 +14,37 @@ const categories = [
 ];
 
 export default function NewsSection() {
+  const [newsData, setNewsData] = useState<News[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedNews, setSelectedNews] = useState<string | null>(null);
-  const [userReactions, setUserReactions] = useState<{[key: string]: string}>({});
+  const [userReactions, setUserReactions] = useState<{[key: string]: string[]}>({});
+  const [reactionCounts, setReactionCounts] = useState<{[key: string]: {[reactionName: string]: number}}>({});
+  const processingRef = useRef<{[key: string]: boolean}>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
+  const [currentNewsIndex, setCurrentNewsIndex] = useState<number>(0);
 
-  const filteredNews = selectedCategory === 'all' 
-    ? newsData 
-    : newsData.filter(item => item.category === selectedCategory);
+  useEffect(() => {
+    const loadNews = async () => {
+      try {
+        const news = await getNews();
+        setNewsData(news);
+        
+        // Инициализируем счетчики реакций из PocketBase
+        const initialCounts: {[key: string]: {[reactionName: string]: number}} = {};
+        news.forEach(newsItem => {
+          initialCounts[newsItem.id] = newsItem.reaction_counts || {};
+        });
+        setReactionCounts(initialCounts);
+      } catch (error) {
+        setNewsData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'Команда':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'События':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
-      case 'Оборудование':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'Мастер-классы':
-        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-    }
-  };
+    loadNews();
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -115,56 +55,242 @@ export default function NewsSection() {
     });
   };
 
-  const handleReaction = (newsId: string, reactionType: string) => {
-    setUserReactions(prev => {
-      const currentReaction = prev[newsId];
-      if (currentReaction === reactionType) {
-        // Если кликнули на ту же реакцию, убираем её
-        const newReactions = { ...prev };
-        delete newReactions[newsId];
-        return newReactions;
+  const filteredNews = selectedCategory === 'all' 
+    ? newsData 
+    : newsData.filter(item => {
+      if (typeof item.category === 'string') {
+        return item.category === selectedCategory;
+      }
+      return item.expand?.category?.name === selectedCategory;
+    });
+
+  const getCategoryColor = (category: NewsCategory | string) => {
+    if (typeof category === 'string') {
+      // Fallback для старых данных
+      switch (category) {
+        case 'Команда':
+          return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        case 'События':
+          return 'bg-red-500/20 text-red-300 border-red-500/30';
+        case 'Оборудование':
+          return 'bg-green-500/20 text-green-300 border-green-500/30';
+        case 'Мастер-классы':
+          return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+        case 'Турниры':
+          return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+        default:
+          return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+      }
+    }
+    
+    // Проверяем, есть ли цвета в объекте категории (старая структура)
+    if (category.color && category.bg_color && category.border_color) {
+      // Используем цвета из PocketBase через inline стили (старая система без transparency)
+      return {
+        className: '',
+        style: {
+          backgroundColor: `${category.bg_color}20`,
+          color: category.color,
+          borderColor: `${category.border_color}30`
+        }
+      };
+    }
+    
+    // Новая структура с color_theme - используем цвета из связанной темы
+    if (category.expand?.color_theme) {
+      const theme = category.expand.color_theme;
+      
+      // Конвертируем прозрачность в HEX
+      const transparencyValue = theme.transparency !== undefined ? theme.transparency : 80;
+      const alphaHex = transparencyToHex(transparencyValue);
+      
+      return {
+        className: '',
+        style: {
+          backgroundColor: `${theme.bg_color}${alphaHex}`,
+          color: theme.color,
+          borderColor: `${theme.border_color}${alphaHex}`
+        }
+      };
+    }
+    
+    // Fallback цвета по названию категории
+    switch (category.name) {
+      case 'Команда':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'События':
+        return 'bg-red-500/20 text-red-300 border-red-500/30';
+      case 'Оборудование':
+        return 'bg-green-500/20 text-green-300 border-green-500/30';
+      case 'Мастер-классы':
+        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+      case 'Турниры':
+        return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+      default:
+        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+    }
+  };
+
+  const handleReaction = useCallback(async (newsId: string, reactionType: string) => {
+    const reactionKey = `${newsId}-${reactionType}`;
+    
+    // Предотвращаем двойной вызов через useRef
+    if (processingRef.current[reactionKey]) {
+      return;
+    }
+    
+    processingRef.current[reactionKey] = true;
+    
+    // Получаем текущее состояние
+    const currentReactions = userReactions[newsId] || [];
+    const isActive = currentReactions.includes(reactionType);
+    const currentCount = reactionCounts[newsId]?.[reactionType] || 0;
+    
+    // Определяем, добавляем или убираем реакцию
+    const isAdding = !isActive;
+    
+    // Оптимистично обновляем UI
+    setUserReactions(prevUserReactions => {
+      if (isActive) {
+        // Убираем реакцию
+        return { 
+          ...prevUserReactions, 
+          [newsId]: currentReactions.filter(r => r !== reactionType) 
+        };
       } else {
-        // Если кликнули на другую реакцию, заменяем
-        return { ...prev, [newsId]: reactionType };
+        // Добавляем реакцию
+        return { 
+          ...prevUserReactions, 
+          [newsId]: [...currentReactions, reactionType] 
+        };
       }
     });
+    
+    setReactionCounts(prevCounts => {
+      if (isAdding) {
+        // Добавляем реакцию - увеличиваем счетчик на 1
+        return {
+          ...prevCounts,
+          [newsId]: {
+            ...prevCounts[newsId],
+            [reactionType]: currentCount + 1
+          }
+        };
+      } else {
+        // Убираем реакцию - уменьшаем счетчик на 1, но не ниже 0
+        return {
+          ...prevCounts,
+          [newsId]: {
+            ...prevCounts[newsId],
+            [reactionType]: Math.max(0, currentCount - 1)
+          }
+        };
+      }
+    });
+    
+    // Отправляем обновление в PocketBase
+    try {
+      await updateNewsReaction(newsId, reactionType, isAdding);
+    } catch (error) {
+      console.error('❌ Ошибка при обновлении реакции в PocketBase:', error);
+      
+      // Откатываем изменения в случае ошибки
+      setUserReactions(prevUserReactions => {
+        if (isActive) {
+          // Возвращаем реакцию обратно
+          return { 
+            ...prevUserReactions, 
+            [newsId]: [...currentReactions, reactionType] 
+          };
+        } else {
+          // Убираем реакцию обратно
+          return { 
+            ...prevUserReactions, 
+            [newsId]: currentReactions.filter(r => r !== reactionType) 
+          };
+        }
+      });
+      
+      setReactionCounts(prevCounts => {
+        if (isAdding) {
+          // Возвращаем счетчик обратно (уменьшаем)
+          return {
+            ...prevCounts,
+            [newsId]: {
+              ...prevCounts[newsId],
+              [reactionType]: currentCount
+            }
+          };
+        } else {
+          // Возвращаем счетчик обратно (увеличиваем)
+          return {
+            ...prevCounts,
+            [newsId]: {
+              ...prevCounts[newsId],
+              [reactionType]: currentCount
+            }
+          };
+        }
+      });
+    }
+    
+    // Сбрасываем флаг через microtask
+    Promise.resolve().then(() => {
+      delete processingRef.current[reactionKey];
+    });
+  }, [userReactions, reactionCounts]);
+
+  const openNewsModal = (newsId: string) => {
+    const newsIndex = filteredNews.findIndex(news => news.id === newsId);
+    setCurrentNewsIndex(newsIndex);
+    setSelectedNewsId(newsId);
+    setIsModalOpen(true);
+  };
+
+  const navigateToNews = (newsId: string) => {
+    const newsIndex = filteredNews.findIndex(news => news.id === newsId);
+    setCurrentNewsIndex(newsIndex);
+    setSelectedNewsId(newsId);
+  };
+
+  const closeNewsModal = () => {
+    setIsModalOpen(false);
+    setSelectedNewsId(null);
+    setCurrentNewsIndex(0);
   };
 
   return (
-    <section className="py-20 relative overflow-hidden">
+    <section className="py-12 sm:py-16 md:py-20 relative overflow-hidden">
       {/* Декоративные элементы */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Красные и синие круги */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-red-500/10 rounded-full animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-blue-500/10 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute bottom-20 left-1/4 w-20 h-20 bg-red-500/10 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-40 right-1/3 w-28 h-28 bg-blue-500/10 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+        {/* Красные и синие круги - адаптивные размеры */}
+        <div className="absolute top-12 sm:top-20 left-4 sm:left-10 w-20 h-20 sm:w-32 sm:h-32 bg-red-500/10 rounded-full animate-pulse"></div>
+        <div className="absolute top-24 sm:top-40 right-8 sm:right-20 w-16 h-16 sm:w-24 sm:h-24 bg-blue-500/10 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-12 sm:bottom-20 left-1/4 w-12 h-12 sm:w-20 sm:h-20 bg-red-500/10 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-24 sm:bottom-40 right-1/3 w-16 h-16 sm:w-28 sm:h-28 bg-blue-500/10 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
         
-        {/* Белые линии */}
-        <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-        <div className="absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Заголовок секции */}
-        <div className="text-center mb-16">
-          <h2 className="hero-jab-title text-4xl md:text-6xl font-bold text-white mb-6">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
               НОВОСТИ
             </span>
           </h2>
-          <p className="hero-jab-text text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
+          <p className="hero-jab-text text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed px-4">
             Следите за последними событиями и обновлениями в мире JAB
           </p>
         </div>
 
         {/* Фильтры по категориям */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 sm:mb-12 px-4">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-6 py-3 rounded-full border transition-all duration-300 hero-jab-text cursor-glove ${
+              className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full border transition-all duration-300 hero-jab-text cursor-glove text-xs sm:text-sm ${
                 selectedCategory === category.id
                   ? 'bg-red-500/20 text-red-300 border-red-500/50'
                   : 'bg-transparent text-gray-300 border-gray-600/50 hover:border-red-500/30 hover:text-red-300'
@@ -176,154 +302,284 @@ export default function NewsSection() {
         </div>
 
         {/* Сетка новостей */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {filteredNews.map((news) => (
-            <article
-              key={news.id}
-              className={`group bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-sm rounded-2xl border transition-all duration-300 cursor-glove overflow-hidden flex flex-col h-full ${
-                news.isHot 
-                  ? 'border-yellow-500/60 shadow-lg shadow-yellow-500/20 animate-pulse' 
-                  : 'border-gray-700/50 hover:border-red-500/40'
-              }`}
-            >
-              {/* Изображение новости */}
-              <div className="relative h-48 overflow-hidden">
-                <Image
-                  src={news.image}
-                  alt={news.title}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute top-4 left-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border hero-jab-text ${getCategoryColor(news.category)}`}>
-                    {news.category}
-                  </span>
-                </div>
-                {/* Горячая новость - бейдж */}
-                {news.isHot && (
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider hero-jab-text animate-bounce">
-                    🔥 ГОРЯЧАЯ
+        <div className="max-w-7xl mx-auto">
+          {loading ? (
+            <div className="block lg:hidden space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white/10 rounded-xl p-3 sm:p-4 animate-pulse">
+                  <div className="flex">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/20 rounded mb-3 sm:mb-4"></div>
+                    <div className="flex-grow ml-3 sm:ml-4">
+                      <div className="h-4 bg-white/20 rounded mb-2"></div>
+                      <div className="h-3 bg-white/20 rounded mb-2"></div>
+                      <div className="h-3 bg-white/20 rounded mb-2"></div>
+                      <div className="h-3 bg-white/20 rounded"></div>
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* Контент новости */}
-              <div className="p-6 flex flex-col h-full">
-                {/* Дата и автор */}
-                <div className="flex items-center justify-between text-sm text-gray-400 mb-3">
-                  <span className="hero-jab-text">{formatDate(news.date)}</span>
-                  <span className="hero-jab-text">{news.author}</span>
                 </div>
-
-                {/* Заголовок */}
-                <h3 className="hero-jab-text text-xl font-bold text-white mb-3 group-hover:text-red-300 transition-colors">
-                  {news.title}
-                </h3>
-
-                {/* Краткое описание */}
-                <p className="hero-jab-text text-gray-300 leading-relaxed mb-4 flex-grow">
-                  {news.excerpt}
-                </p>
-
-                {/* Реакции для всех новостей */}
-                {news.reactions && (
-                  <div className="flex items-center gap-4 mb-4">
-                    <button
-                      onClick={() => handleReaction(news.id, 'like')}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors duration-200 cursor-glove min-w-[60px] border ${
-                        userReactions[news.id] === 'like' 
-                          ? 'bg-blue-500/20 border-blue-500/50' 
-                          : 'bg-transparent border-transparent hover:bg-gray-700/30'
-                      }`}
-                    >
-                      <span className={`text-lg transition-transform duration-200 ${
-                        userReactions[news.id] === 'like' ? 'scale-125' : ''
-                      }`}>👍</span>
-                      <span className={`hero-jab-text text-sm transition-colors ${
-                        userReactions[news.id] === 'like' ? 'text-blue-300' : 'text-gray-300'
-                      }`}>{news.reactions.like}</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => handleReaction(news.id, 'love')}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors duration-200 cursor-glove min-w-[60px] border ${
-                        userReactions[news.id] === 'love' 
-                          ? 'bg-red-500/20 border-red-500/50' 
-                          : 'bg-transparent border-transparent hover:bg-gray-700/30'
-                      }`}
-                    >
-                      <span className={`text-lg transition-transform duration-200 ${
-                        userReactions[news.id] === 'love' ? 'scale-125' : ''
-                      }`}>❤️</span>
-                      <span className={`hero-jab-text text-sm transition-colors ${
-                        userReactions[news.id] === 'love' ? 'text-red-300' : 'text-gray-300'
-                      }`}>{news.reactions.love}</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => handleReaction(news.id, 'fire')}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors duration-200 cursor-glove min-w-[60px] border ${
-                        userReactions[news.id] === 'fire' 
-                          ? 'bg-orange-500/20 border-orange-500/50' 
-                          : 'bg-transparent border-transparent hover:bg-gray-700/30'
-                      }`}
-                    >
-                      <span className={`text-lg transition-transform duration-200 ${
-                        userReactions[news.id] === 'fire' ? 'scale-125' : ''
-                      }`}>🔥</span>
-                      <span className={`hero-jab-text text-sm transition-colors ${
-                        userReactions[news.id] === 'fire' ? 'text-orange-300' : 'text-gray-300'
-                      }`}>{news.reactions.fire}</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => handleReaction(news.id, 'clap')}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors duration-200 cursor-glove min-w-[60px] border ${
-                        userReactions[news.id] === 'clap' 
-                          ? 'bg-yellow-500/20 border-yellow-500/50' 
-                          : 'bg-transparent border-transparent hover:bg-gray-700/30'
-                      }`}
-                    >
-                      <span className={`text-lg transition-transform duration-200 ${
-                        userReactions[news.id] === 'clap' ? 'scale-125' : ''
-                      }`}>👏</span>
-                      <span className={`hero-jab-text text-sm transition-colors ${
-                        userReactions[news.id] === 'clap' ? 'text-yellow-300' : 'text-gray-300'
-                      }`}>{news.reactions.clap}</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Кнопка "Читать далее" */}
-                <div className="mt-auto">
-                  <button
-                    onClick={() => setSelectedNews(selectedNews === news.id ? null : news.id)}
-                    className="text-red-400 hover:text-red-300 font-semibold hero-jab-text transition-colors cursor-glove"
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Мобильная версия - вертикальные карточки как в референсе */}
+              <div className="block lg:hidden space-y-4">
+                {filteredNews.map((news) => (
+                  <article
+                    key={news.id}
+                    className={`group bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-sm rounded-2xl border transition-all duration-500 cursor-glove overflow-hidden flex flex-col hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10 ${
+                      news.is_hot 
+                        ? 'border-yellow-500/60 shadow-lg shadow-yellow-500/20 hover:border-yellow-500/80 hover:shadow-yellow-500/30' 
+                        : 'border-gray-700/50 hover:border-blue-500/40'
+                    }`}
                   >
-                    {selectedNews === news.id ? 'Скрыть' : 'Читать далее'} →
-                  </button>
-                </div>
+                    {/* Изображение новости - как в референсе */}
+                    <div className="relative h-48 overflow-hidden">
+                      {news.image ? (
+                        <Image
+                          src={getImageUrl(news, news.image)}
+                          alt={news.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                          <span className="text-6xl">📰</span>
+                        </div>
+                      )}
+                      
+                      {/* Категория - как в референсе */}
+                      <div className="absolute top-3 left-3">
+                        {(() => {
+                          const colorData = getCategoryColor(news.expand?.category || news.category);
+                          if (typeof colorData === 'string') {
+                            return (
+                              <span className={`px-2 py-1 rounded-full text-xs font-bold tracking-wider border hero-jab-text ${colorData}`}>
+                                {news.expand?.category?.name || news.category}
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span 
+                                className={`px-2 py-1 rounded-full text-xs font-bold tracking-wider border hero-jab-text ${colorData.className}`}
+                                style={colorData.style}
+                              >
+                                {news.expand?.category?.name || news.category}
+                              </span>
+                            );
+                          }
+                        })()}
+                      </div>
+                      
+                      {/* Горячая новость - бейдж */}
+                      {news.is_hot && (
+                        <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider hero-jab-text animate-bounce">
+                          🔥 ГОРЯЧАЯ
+                        </div>
+                      )}
+                    </div>
 
-                {/* Полный текст (раскрывается при клике) */}
-                {selectedNews === news.id && (
-                  <div className="mt-4 pt-4 border-t border-gray-700/50">
-                    <p className="hero-jab-text text-gray-300 leading-relaxed">
-                      {news.content}
-                    </p>
-                  </div>
-                )}
+                    {/* Контент новости - как в референсе */}
+                    <div className="p-4 flex flex-col flex-grow">
+                      {/* Дата и автор - как в референсе */}
+                      <div className="hero-jab-text text-xs text-gray-400 mb-2">
+                        {formatDate(news.published_date)} / {news.expand?.author?.name || news.author}
+                      </div>
+
+                      {/* Заголовок - как в референсе */}
+                      <h3 className="hero-jab-text text-base font-bold text-white mb-3 group-hover:text-red-300 transition-colors line-clamp-2">
+                        {news.title}
+                      </h3>
+
+                      {/* Кнопка "Читать далее" - как в референсе */}
+                      <div className="mt-auto">
+                        <button
+                          onClick={() => openNewsModal(news.id)}
+                          className="text-red-400 hover:text-red-300 font-semibold hero-jab-text transition-colors cursor-glove text-sm flex items-center gap-1"
+                        >
+                          Читать далее →
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
               </div>
-            </article>
-          ))}
+
+              {/* Десктопная версия - обычные карточки */}
+              <div className="hidden lg:grid grid-cols-4 gap-4">
+                {filteredNews.map((news) => (
+                  <article
+                    key={news.id}
+                    className={`group bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-sm rounded-2xl border transition-all duration-500 cursor-glove overflow-hidden flex flex-col h-full hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10 ${
+                      news.is_hot 
+                        ? 'border-yellow-500/60 shadow-lg shadow-yellow-500/20 animate-pulse hover:border-yellow-500/80 hover:shadow-yellow-500/30' 
+                        : 'border-gray-700/50 hover:border-blue-500/40'
+                    }`}
+                  >
+                    {/* Изображение новости - как в референсе */}
+                    <div className="relative h-48 overflow-hidden">
+                      {news.image ? (
+                        <Image
+                          src={getImageUrl(news, news.image)}
+                          alt={news.title}
+                          fill
+                          sizes="(max-width: 768px) 112px, (max-width: 1024px) 128px, 200px"
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                          <span className="text-6xl">📰</span>
+                        </div>
+                      )}
+                      
+                      {/* Категория - как TAG в референсе */}
+                      <div className="absolute top-4 left-4">
+                        {(() => {
+                          const colorData = getCategoryColor(news.expand?.category || news.category);
+                          if (typeof colorData === 'string') {
+                            return (
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider border hero-jab-text ${colorData}`}>
+                                {news.expand?.category?.name || news.category}
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span 
+                                className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider border hero-jab-text ${colorData.className}`}
+                                style={colorData.style}
+                              >
+                                {news.expand?.category?.name || news.category}
+                              </span>
+                            );
+                          }
+                        })()}
+                      </div>
+                      
+                      {/* Горячая новость - бейдж */}
+                      {news.is_hot && (
+                        <div className="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider hero-jab-text animate-bounce">
+                          🔥 ГОРЯЧАЯ
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Контент новости - как в референсе */}
+                    <div className="p-4 flex flex-col flex-grow">
+                      {/* Дата и автор - как DATE/AUTHOR в референсе */}
+                      <div className="hero-jab-text text-xs text-gray-400 mb-2">
+                        {formatDate(news.published_date)} / {news.expand?.author?.name || news.author}
+                      </div>
+
+                      {/* Заголовок - как TITLE в референсе */}
+                      <h3 className="hero-jab-text text-lg font-bold text-white mb-3 group-hover:text-red-300 transition-colors line-clamp-2">
+                        {news.title}
+                      </h3>
+
+                      {/* Краткое описание - как SUMMARY в референсе */}
+                      <p className="hero-jab-text text-gray-300 leading-relaxed mb-4 flex-grow text-sm group-hover:text-gray-200 transition-colors line-clamp-3">
+                        {stripHtmlTags(news.excerpt)}
+                      </p>
+
+                      {/* Реакции */}
+                      {(news.expand?.reactions && news.expand.reactions.length > 0) ? (
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          {news.expand.reactions.map((reaction) => {
+                            const count = reactionCounts[news.id]?.[reaction.name] || 0;
+                            const isActive = userReactions[news.id]?.includes(reaction.name) || false;
+                            
+                            return (
+                              <button
+                                key={reaction.id}
+                                type="button"
+                                onClick={() => handleReaction(news.id, reaction.name)}
+                                className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors duration-200 cursor-glove border ${
+                                  isActive 
+                                    ? 'bg-blue-500/20 border-blue-500/50' 
+                                    : 'bg-transparent border-transparent hover:bg-gray-700/30'
+                                }`}
+                              >
+                                <span className={`text-sm transition-transform duration-200 ${
+                                  isActive ? 'scale-125' : ''
+                                }`}>{reaction.emoji}</span>
+                                {count > 0 && (
+                                  <span className={`hero-jab-text text-xs transition-colors ${
+                                    isActive ? 'text-blue-300' : 'text-gray-300'
+                                  }`}>{count}</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        // Fallback реакции для тестирования
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          {[
+                            { emoji: '👍', name: 'like' },
+                            { emoji: '❤️', name: 'love' },
+                            { emoji: '🔥', name: 'fire' }
+                          ].map((reaction) => {
+                            const count = reactionCounts[news.id]?.[reaction.name] || 0;
+                            const isActive = userReactions[news.id]?.includes(reaction.name) || false;
+                            
+                            return (
+                              <button
+                                key={reaction.name}
+                                type="button"
+                                onClick={() => handleReaction(news.id, reaction.name)}
+                                className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors duration-200 cursor-glove border ${
+                                  isActive 
+                                    ? 'bg-blue-500/20 border-blue-500/50' 
+                                    : 'bg-transparent border-transparent hover:bg-gray-700/30'
+                                }`}
+                              >
+                                <span className={`text-sm transition-transform duration-200 ${
+                                  isActive ? 'scale-125' : ''
+                                }`}>{reaction.emoji}</span>
+                                {count > 0 && (
+                                  <span className={`hero-jab-text text-xs transition-colors ${
+                                    isActive ? 'text-blue-300' : 'text-gray-300'
+                                  }`}>{count}</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Кнопка "Читать далее" - как READ MORE в референсе */}
+                      <div className="mt-auto">
+                        <button
+                          onClick={() => openNewsModal(news.id)}
+                          className="text-red-400 hover:text-red-300 font-semibold hero-jab-text transition-colors cursor-glove text-sm flex items-center gap-1"
+                        >
+                          Читать далее →
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Кнопка "Все новости" */}
-        <div className="text-center mt-12">
-          <button className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 hero-jab-text cursor-glove">
+        <div className="text-center mt-8 sm:mt-12">
+          <button className="bg-red-500 hover:bg-red-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 hero-jab-text cursor-glove text-sm sm:text-base w-full sm:w-auto">
             Все новости
           </button>
         </div>
       </div>
+
+      {/* Модальное окно для новостей */}
+      <NewsModal 
+        isOpen={isModalOpen}
+        onClose={closeNewsModal}
+        newsId={selectedNewsId}
+        allNews={filteredNews}
+        currentNewsIndex={currentNewsIndex}
+        onNavigateToNews={navigateToNews}
+      />
     </section>
   );
 }

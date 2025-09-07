@@ -22,8 +22,8 @@ export default function FAQSection() {
     },
     {
       id: '2',
-      question: 'Какие виды единоборств вы преподаете?',
-      answer: 'Мы специализируемся на боксе, ММА и кикбоксинге. Каждый вид единоборств имеет свои особенности, и наши тренеры помогут вам выбрать наиболее подходящий для ваших целей.',
+      question: 'В каких залах проходят тренировки?',
+      answer: 'У нас есть два спортивных зала: "Локомотив" и "Сопка". Оба зала оборудованы современным спортивным инвентарем и подходят для занятий различными видами единоборств.',
       category: 'training'
     },
     {
@@ -180,7 +180,7 @@ export default function FAQSection() {
               >
                 <button
                   onClick={() => toggleItem(item.id)}
-                  className="w-full p-4 text-left flex items-center justify-between hover:bg-red-500/5 transition-colors duration-300"
+                  className="w-full p-4 text-left flex items-center justify-between hover:bg-red-500/5 transition-colors duration-300 cursor-glove"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -222,12 +222,18 @@ export default function FAQSection() {
                 Свяжитесь с нами любым удобным способом, и мы с радостью ответим на все ваши вопросы
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="btn-jab bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl cursor-glove hero-jab-text">
+                <a 
+                  href="#contact"
+                  className="btn-jab bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl cursor-glove hero-jab-text smooth-scroll inline-block text-center"
+                >
                   Связаться с нами
-                </button>
-                <button className="btn-jab border-2 border-red-500 text-red-400 hover:bg-red-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 cursor-glove hero-jab-text">
+                </a>
+                <a 
+                  href="#contact"
+                  className="btn-jab border-2 border-red-500 text-red-400 hover:bg-red-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 cursor-glove hero-jab-text smooth-scroll inline-block text-center"
+                >
                   Записаться на тренировку
-                </button>
+                </a>
               </div>
             </div>
           </div>

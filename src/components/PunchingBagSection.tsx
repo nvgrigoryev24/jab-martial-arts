@@ -60,10 +60,10 @@ export default function PunchingBagSection({ onPromoCodeGenerated }: PunchingBag
       setSwingDirection(null);
     }, 800);
 
-    // Убираем комикс-эффект через 1.5 секунды
+    // Убираем комикс-эффект одновременно с анимацией груши
     setTimeout(() => {
       setComicEffect(null);
-    }, 1500);
+    }, 800);
   };
 
   const handleApplyPromoCode = () => {
@@ -71,6 +71,15 @@ export default function PunchingBagSection({ onPromoCodeGenerated }: PunchingBag
     const contactSection = document.getElementById('contact');
     if (contactSection) {
       contactSection.scrollIntoView({ behavior: 'smooth' });
+      
+      // После скролла фокусируемся на поле "Дополнительная информация"
+      setTimeout(() => {
+        const messageField = document.getElementById('message');
+        if (messageField) {
+          messageField.focus();
+          messageField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 800); // Даем время на завершение скролла
     }
   };
 
@@ -109,7 +118,7 @@ export default function PunchingBagSection({ onPromoCodeGenerated }: PunchingBag
                 alt="Боксерская груша"
                 width={400}
                 height={600}
-                className={`transition-transform duration-300 ${
+                className={`w-64 h-96 sm:w-80 sm:h-[28rem] md:w-96 md:h-[32rem] lg:w-[400px] lg:h-[600px] transition-transform duration-300 ${
                   isAnimating 
                     ? swingDirection === 'left' 
                       ? 'animate-swing-left' 

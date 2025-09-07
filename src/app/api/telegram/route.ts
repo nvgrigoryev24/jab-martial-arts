@@ -5,20 +5,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, phone, contactMethods, additionalInfo } = body;
 
-    console.log('Received form data:', { name, phone, contactMethods, additionalInfo });
 
     // Получаем переменные окружения
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    console.log('Environment check:', { 
-      hasBotToken: !!botToken, 
-      hasChatId: !!chatId,
-      chatId: chatId 
-    });
 
     if (!botToken || !chatId) {
-      console.error('Missing environment variables:', { botToken: !!botToken, chatId: !!chatId });
       return NextResponse.json(
         { error: 'Telegram bot configuration is missing' },
         { status: 500 }
@@ -59,8 +52,6 @@ export async function POST(request: NextRequest) {
 
     if (!telegramResponse.ok) {
       const errorData = await telegramResponse.json();
-      console.error('Telegram API error:', errorData);
-      console.error('Telegram response status:', telegramResponse.status);
       return NextResponse.json(
         { error: 'Failed to send message to Telegram', details: errorData },
         { status: 500 }
@@ -68,10 +59,8 @@ export async function POST(request: NextRequest) {
     }
 
     const telegramData = await telegramResponse.json();
-    console.log('Telegram response:', telegramData);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error sending to Telegram:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

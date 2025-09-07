@@ -12,20 +12,31 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    // Таймаут для автоматического завершения прелоадера через 3 секунды
+    const timeout = setTimeout(() => {
+      setIsVisible(false);
+      onComplete();
+    }, 3000);
+
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      clearTimeout(timeout);
+      return;
+    }
 
     const handleVideoLoad = () => {
       setIsVideoLoaded(true);
     };
 
     const handleVideoEnd = () => {
+      clearTimeout(timeout);
       setIsVisible(false);
-      onComplete(); // Убираем задержку
+      onComplete();
     };
 
     const handleVideoError = () => {
       // Если видео не загрузилось, пропускаем прелоадер
+      clearTimeout(timeout);
       setIsVisible(false);
       onComplete();
     };
@@ -37,11 +48,13 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     // Автоматически запускаем видео
     video.play().catch(() => {
       // Если автовоспроизведение заблокировано, пропускаем прелоадер
+      clearTimeout(timeout);
       setIsVisible(false);
       onComplete();
     });
 
     return () => {
+      clearTimeout(timeout);
       video.removeEventListener('loadeddata', handleVideoLoad);
       video.removeEventListener('ended', handleVideoEnd);
       video.removeEventListener('error', handleVideoError);
@@ -82,6 +95,17 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           </div>
         </div>
 
+        {/* Кнопка пропуска - НАД видео, справа от центра */}
+        <button
+          onClick={() => {
+            setIsVisible(false);
+            onComplete();
+          }}
+          className="absolute top-24 left-1/2 transform translate-x-24 px-4 py-2 text-white/80 hover:text-white border border-white/60 hover:border-white/80 rounded-lg transition-all duration-300 cursor-glove hero-jab-text text-sm font-medium hover:scale-105"
+        >
+          Пропустить
+        </button>
+
         {/* Индикатор загрузки */}
         {!isVideoLoaded && (
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
@@ -92,16 +116,6 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           </div>
         )}
 
-        {/* Кнопка пропуска (появляется через 2 секунды) */}
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            onComplete();
-          }}
-          className="absolute top-4 right-4 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors cursor-glove hero-jab-text"
-        >
-          Пропустить
-        </button>
       </div>
     </div>
   );

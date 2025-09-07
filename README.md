@@ -1,4 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JAB Martial Arts - School Website
+
+**Version:** 1.3.0  
+**Last Updated:** January 15, 2025  
+**Status:** ✅ Production Ready
+
+This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school website, featuring modern design, interactive elements, and comprehensive content management through PocketBase.
+
+## 🚀 Latest Updates (v1.3.0)
+
+### 🎨 Schedule Color Theme System
+- Dynamic color themes for training locations and levels via PocketBase
+- Customizable transparency settings (0-100%) with inline styles
+- Fallback system for backward compatibility
+- Integration with `color_theme` collection
+
+### 🏋️ Enhanced Training Schedule
+- Support for multiple coaches per training session
+- Improved filtering by locations and levels using real PocketBase data
+- Dynamic level detection from actual schedule data
+- Clean console without debug messages
+
+### 🔧 Technical Improvements
+- Updated TypeScript interfaces for new collections
+- Enhanced PocketBase integration with proper expand parameters
+- Improved error handling for hot reload scenarios
+- Optimized data fetching and state management
+
+### 📚 Documentation Updates
+- Updated PocketBase collection setup guide
+- Added color theme examples for schedule
+- Enhanced technical documentation
+- Comprehensive backup system
 
 ## Getting Started
 

@@ -1,6 +1,4 @@
 @import "tailwindcss";
-
-/* Импорт кастомного шрифта */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -28,6 +26,10 @@
   --color-blue-dark: var(--blue-dark);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: auto;
 }
 
 body {
@@ -357,12 +359,12 @@ body::after {
 
 /* Курсор боксерской перчатки */
 .cursor-glove {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate(330 16 16)'%3E%3Ccircle cx='16' cy='16' r='15' fill='rgba(0,0,0,0.8)' stroke='rgba(255,255,255,0.9)' stroke-width='2'/%3E%3Ctext x='16' y='20' text-anchor='middle' font-size='18'%3E🥊%3C/text%3E%3C/g%3E%3C/svg%3E"), auto;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate(330 16 16)'%3E%3Ctext x='16' y='20' text-anchor='middle' font-size='18' fill='%23007bff'%3E🥊%3C/text%3E%3C/g%3E%3C/svg%3E"), auto;
 }
 
 /* Большой курсор-перчатка для груши */
 .cursor-glove-large {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg transform='rotate(330 32 32)'%3E%3Ctext x='32' y='40' text-anchor='middle' font-size='36' fill='%23000000'%3E🥊%3C/text%3E%3C/g%3E%3C/svg%3E"), auto;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg transform='rotate(330 32 32)'%3E%3Ctext x='32' y='40' text-anchor='middle' font-size='36' fill='%23007bff'%3E🥊%3C/text%3E%3C/g%3E%3C/svg%3E"), auto;
 }
 
 /* ===== СТИЛИ ДЛЯ HERO В СТИЛЕ JAB ===== */
@@ -670,4 +672,544 @@ body::after {
 .btn-boxing:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(220, 38, 38, 0.3), 0 0 20px rgba(37, 99, 235, 0.3);
+}
+
+/* ===== УБИРАЕМ ПЛАВНУЮ ПРОКРУТКУ ===== */
+html {
+  scroll-behavior: auto; /* Отключаем плавную прокрутку */
+}
+
+/* Отключаем для всех устройств */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: auto; /* Отключено */
+  }
+}
+
+/* Уважение к настройкам пользователя */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Плавная прокрутка для мобильных устройств */
+@media (max-width: 768px) {
+  html {
+    scroll-padding-top: 140px; /* Увеличенный отступ для мобильных */
+  }
+  
+  * {
+    scroll-margin-top: 140px;
+  }
+}
+
+/* Специальные настройки для секций */
+section[id] {
+  scroll-margin-top: 160px;
+}
+
+@media (max-width: 768px) {
+  section[id] {
+    scroll-margin-top: 140px;
+  }
+}
+
+/* Дополнительные отступы для конкретных секций */
+#coaches,
+#schedule,
+#pricing,
+#contact {
+  scroll-margin-top: 180px;
+}
+
+@media (max-width: 768px) {
+  #coaches,
+  #schedule,
+  #pricing,
+  #contact {
+    scroll-margin-top: 160px;
+  }
+}
+
+/* Дополнительные стили для плавности */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Анимация появления секций при прокрутке */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Отключаем плавный переход для якорных ссылок */
+a[href^="#"] {
+  scroll-behavior: auto;
+}
+
+/* ===== БУРГЕР-МЕНЮ В СТИЛЕ JAB ===== */
+
+/* Анимация бургер-кнопки */
+.burger-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+  border: 2px solid rgba(220, 38, 38, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.burger-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.burger-btn:hover {
+  border-color: rgba(220, 38, 38, 0.6);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.2);
+}
+
+.burger-btn:hover::before {
+  opacity: 1;
+}
+
+.burger-btn:active {
+  transform: scale(0.95);
+}
+
+/* Линии бургера */
+.burger-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: linear-gradient(90deg, #ffffff 0%, #dc2626 50%, #ffffff 100%);
+  border-radius: 1px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.3);
+}
+
+.burger-line:nth-child(1) {
+  top: 12px;
+}
+
+.burger-line:nth-child(2) {
+  top: 19px;
+}
+
+.burger-line:nth-child(3) {
+  top: 26px;
+}
+
+/* Анимация закрытия (X) */
+.burger-btn.open .burger-line:nth-child(1) {
+  top: 19px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.burger-btn.open .burger-line:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-50%) scale(0);
+}
+
+.burger-btn.open .burger-line:nth-child(3) {
+  top: 19px;
+  transform: translateX(-50%) rotate(-45deg);
+}
+
+/* Мобильное меню */
+.mobile-menu {
+  position: fixed;
+  top: var(--header-height, 100px); /* Динамическая высота Header */
+  right: 0;
+  width: 85%;
+  max-width: 350px;
+  height: calc(100vh - var(--header-height, 100px)); /* Высота минус динамическая высота Header */
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.98) 0%, 
+    rgba(31, 41, 55, 0.95) 25%, 
+    rgba(0, 0, 0, 0.98) 50%, 
+    rgba(17, 24, 39, 0.95) 75%, 
+    rgba(0, 0, 0, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border-left: 3px solid rgba(220, 38, 38, 0.3);
+  box-shadow: -20px 0 40px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+
+.mobile-menu.open {
+  transform: translateX(0);
+}
+
+/* Оверлей для мобильного меню */
+.mobile-menu-overlay {
+  position: fixed;
+  top: var(--header-height, 100px); /* Динамическая высота Header */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s ease;
+}
+
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Заголовок мобильного меню */
+.mobile-menu-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(220, 38, 38, 0.2);
+  background: linear-gradient(90deg, rgba(220, 38, 38, 0.1) 0%, transparent 100%);
+}
+
+.mobile-menu-title {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: #dc2626;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+}
+
+
+/* Навигационные ссылки */
+.mobile-nav-link {
+  display: block;
+  padding: 16px 24px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border-left: 3px solid transparent;
+  margin: 4px 0;
+}
+
+.mobile-nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(180deg, #dc2626 0%, #ef4444 100%);
+  transition: width 0.3s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+.mobile-nav-link:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  border-left-color: #dc2626;
+  padding-left: 28px;
+  transform: translateX(8px);
+}
+
+.mobile-nav-link:hover::before {
+  width: 4px;
+}
+
+.mobile-nav-link:active {
+  transform: translateX(4px) scale(0.98);
+}
+
+/* Кнопка записи в мобильном меню */
+.mobile-cta-button {
+  display: block;
+  margin: 20px 24px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+  text-decoration: none;
+  text-align: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
+}
+
+.mobile-cta-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.mobile-cta-button:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(220, 38, 38, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.mobile-cta-button:hover::before {
+  left: 100%;
+}
+
+.mobile-cta-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Анимация появления элементов меню */
+.mobile-menu-item {
+  opacity: 0;
+  transform: translateX(30px);
+  animation: slideInRight 0.4s ease forwards;
+}
+
+.mobile-menu-item:nth-child(1) { animation-delay: 0.1s; }
+.mobile-menu-item:nth-child(2) { animation-delay: 0.15s; }
+.mobile-menu-item:nth-child(3) { animation-delay: 0.2s; }
+.mobile-menu-item:nth-child(4) { animation-delay: 0.25s; }
+.mobile-menu-item:nth-child(5) { animation-delay: 0.3s; }
+.mobile-menu-item:nth-child(6) { animation-delay: 0.35s; }
+
+@keyframes slideInRight {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Эффект боксерской перчатки для ссылок */
+.mobile-nav-link::after {
+  content: '🥊';
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  font-size: 1.2rem;
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.mobile-nav-link:hover::after {
+  transform: translateY(-50%) scale(1);
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 480px) {
+  .mobile-menu {
+    width: 90%;
+    max-width: 320px;
+  }
+  
+  .mobile-nav-link {
+    padding: 14px 20px;
+    font-size: 1rem;
+  }
+  
+  .mobile-cta-button {
+    margin: 16px 20px;
+    padding: 14px 20px;
+    font-size: 1rem;
+  }
+}
+
+/* Дополнительные эффекты для бургер-меню */
+.burger-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
+}
+
+/* Эффект пульсации для активного состояния */
+.burger-btn.open {
+  animation: burgerPulse 0.6s ease-out;
+}
+
+@keyframes burgerPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Эффект боксерской перчатки для кнопки */
+.burger-btn::after {
+  content: '🥊';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 0.8rem;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.burger-btn:hover::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Эффект удара для ссылок */
+.mobile-nav-link:active {
+  animation: jabHit 0.2s ease-out;
+}
+
+@keyframes jabHit {
+  0% { transform: translateX(4px) scale(0.98); }
+  50% { transform: translateX(8px) scale(1.02); }
+  100% { transform: translateX(4px) scale(0.98); }
+}
+
+/* Эффект боксерского ринга для меню */
+.mobile-menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(220, 38, 38, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(37, 99, 235, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Эффект скорости для кнопки записи */
+.mobile-cta-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    transparent 100%);
+  transition: left 0.6s ease;
+}
+
+.mobile-cta-button:hover::after {
+  left: 100%;
+}
+
+/* Анимация появления меню с эффектом бокса */
+@keyframes menuSlideIn {
+  from {
+    transform: translateX(100%) rotateY(15deg);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.mobile-menu.open {
+  animation: menuSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Эффект боксерского пояса для активной ссылки */
+.mobile-nav-link.active {
+  border-left-color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.mobile-nav-link.active::before {
+  width: 4px;
+}
+
+
+/* Уважение к настройкам пользователя */
+@media (prefers-reduced-motion: reduce) {
+  .burger-btn,
+  .mobile-menu,
+  .mobile-menu-overlay,
+  .mobile-nav-link,
+  .mobile-cta-button,
+  .mobile-menu-item,
+  .burger-btn::after,
+  .mobile-cta-button::after {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Утилиты для обрезки текста */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== СКРЫВАЕМ ПОЛОСУ ПРОКРУТКИ В МОДАЛЬНОМ ОКНЕ ===== */
+/* Скрываем полосу прокрутки только в модальном окне */
+.modal-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Для Firefox */
+.modal-scrollbar {
+  scrollbar-width: none;
+}
+
+/* ===== ТЕСТИРУЕМ БЕЗ ОТСТУПОВ ===== */
+/* Убираем scroll-margin-top чтобы проверить базовое поведение */
+section[id] {
+  /* scroll-margin-top отключен для тестирования */
 }
