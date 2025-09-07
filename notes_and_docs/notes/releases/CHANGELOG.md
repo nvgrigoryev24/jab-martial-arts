@@ -1,5 +1,16 @@
 ## v1.3.0 - 2025-01-15
 
+### 🎨 **Dynamic Hero Section & Enhanced UI**
+- **Dynamic Hero Content**: Complete Hero section content now loads from PocketBase
+- **Image Integration**: Proper image handling with `getImageUrl` function and fallback to placeholder
+- **Enhanced Hover Effects**: Beautiful interactive hover animations for Hero images including:
+  - Scale and brightness effects on image hover
+  - Animated decorative elements with glow effects
+  - Particle effects with staggered animations
+  - Gradient overlays and enhanced shadows
+- **Static Colors**: Colors remain static while content is fully dynamic as requested
+- **Loading States**: Added loading spinner while Hero content is being fetched
+
 ### 🎨 **Schedule Color Theme System & Enhanced Training Management**
 - **Dynamic Schedule Colors**: Added `color_theme` collection integration for locations and training levels
 - **Enhanced Schedule System**: Updated schedule to support multiple coaches per training session
@@ -8,11 +19,12 @@
 - **Clean Console**: Removed all debug logging for production-ready experience
 
 ### 🔧 **Technical Improvements**
-- **TypeScript Interfaces**: Added `ColorTheme` interface and updated `Location`, `Schedule` interfaces
+- **TypeScript Interfaces**: Added `ColorTheme`, `HeroContent`, `TrainingLevel` interfaces
 - **Inline Styles**: Implemented `getColorThemeStyles` function for dynamic color application
 - **PocketBase Integration**: Enhanced expand parameters to load nested color theme data
 - **Error Handling**: Improved error handling for PocketBase auto-cancellation during hot reload
 - **Collection Updates**: Updated `locations` collection to include `color_theme` relation
+- **GitHub Integration**: Added project to GitHub repository with complete documentation
 
 ### 🐛 **Bug Fixes**
 - Fixed color theme application using inline styles instead of Tailwind dynamic classes
@@ -20,6 +32,7 @@
 - Fixed `map is not a function` error for coaches data
 - Removed all debug console messages
 - Fixed PocketBase auto-cancellation error handling
+- Fixed image URL generation for Hero section images
 
 ---
 

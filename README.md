@@ -2,11 +2,18 @@
 
 **Version:** 1.3.0  
 **Last Updated:** January 15, 2025  
-**Status:** ✅ Production Ready
+**Status:** ✅ Production Ready  
+**Repository:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
 
 This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school website, featuring modern design, interactive elements, and comprehensive content management through PocketBase.
 
 ## 🚀 Latest Updates (v1.3.0)
+
+### 🎨 Dynamic Hero Section & Enhanced UI
+- **Dynamic Hero Content**: Complete Hero section content now loads from PocketBase
+- **Image Integration**: Proper image handling with fallback to placeholder
+- **Enhanced Hover Effects**: Beautiful interactive hover animations for Hero images
+- **Static Colors**: Colors remain static while content is fully dynamic
 
 ### 🎨 Schedule Color Theme System
 - Dynamic color themes for training locations and levels via PocketBase
@@ -25,12 +32,40 @@ This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school webs
 - Enhanced PocketBase integration with proper expand parameters
 - Improved error handling for hot reload scenarios
 - Optimized data fetching and state management
+- GitHub integration and repository setup
 
 ### 📚 Documentation Updates
 - Updated PocketBase collection setup guide
 - Added color theme examples for schedule
 - Enhanced technical documentation
 - Comprehensive backup system
+- GitHub repository documentation
+
+## 🐙 GitHub Repository
+
+This project is now available on GitHub: [jab-martial-arts](https://github.com/nvgrigoryev24/jab-martial-arts)
+
+### Repository Features
+- **Public Repository**: Open source and accessible to everyone
+- **Complete Documentation**: Comprehensive guides and setup instructions
+- **Version Control**: Full git history with detailed commit messages
+- **Issue Tracking**: GitHub Issues for bug reports and feature requests
+- **Collaboration**: Ready for team development and contributions
+
+### Clone and Setup
+```bash
+# Clone the repository
+git clone https://github.com/nvgrigoryev24/jab-martial-arts.git
+
+# Navigate to project directory
+cd jab-martial-arts
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
 
 ## Getting Started
 
