@@ -1222,3 +1222,29 @@ section[id] {
 .prose.prose-invert p:last-child {
   margin-bottom: 0;
 }
+
+/* ===== АНИМАЦИЯ "ПОДГЛЯДЫВАНИЯ" ДЛЯ МОБИЛЬНОЙ КАРТОЧКИ ===== */
+@keyframes peek {
+  0% {
+    transform: translateY(calc(100% - 120px));
+  }
+  20% {
+    transform: translateY(calc(100% - 140px));
+  }
+  40% {
+    transform: translateY(calc(100% - 120px));
+  }
+  60% {
+    transform: translateY(calc(100% - 135px));
+  }
+  80% {
+    transform: translateY(calc(100% - 120px));
+  }
+  100% {
+    transform: translateY(calc(100% - 120px));
+  }
+}
+
+.animate-peek {
+  animation: peek 2.5s ease-in-out;
+}

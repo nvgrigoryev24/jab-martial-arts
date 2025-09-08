@@ -23,7 +23,7 @@ export default function MainRenderer() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen w-full">
       <HeroSection />
       <AboutSection />
       <CTABanner />

@@ -1,7 +1,7 @@
 # JAB Martial Arts - School Website
 
 **Version:** 1.9.0  
-**Last Updated:** September 8, 2025  
+**Last Updated:** January 15, 2025  
 **Status:** ✅ Production Ready  
 **Repository:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
 
@@ -17,6 +17,14 @@ This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school webs
 - **Scroll Animations**: Smooth fade-in animations on scroll
 - **JAB Style Elements**: Red accents and decorative elements consistent with brand
 - **Fallback Content**: Default content when PocketBase data is unavailable
+
+### 📱 Mobile "Peek" Functionality
+- **Interactive Card**: Mobile card slides up from bottom with smooth animations
+- **Peek Animation**: Card subtly "peeks" out when section comes into focus
+- **Bounce Indicators**: Animated arrow and hover effects to show interactivity
+- **Dynamic Positioning**: Support for card_width and card_position from PocketBase
+- **Mobile Transparency**: Enhanced background image visibility on mobile devices
+- **Smooth Transitions**: 500ms ease-out animations for all interactions
 
 ## 🚀 Previous Updates (v1.8.0)
 

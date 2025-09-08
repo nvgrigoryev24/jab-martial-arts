@@ -9,6 +9,8 @@ export default function PromoSection() {
   const [isVisible, setIsVisible] = useState(false);
   const [promoData, setPromoData] = useState<PromoSectionType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileCardOpen, setIsMobileCardOpen] = useState(false);
+  const [isPeeking, setIsPeeking] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   // Загрузка данных промо секции из PocketBase
@@ -40,6 +42,14 @@ export default function PromoSection() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+          // Запускаем анимацию "подглядывания" только на мобильных
+          if (window.innerWidth < 640) {
+            setIsPeeking(true);
+            // Останавливаем анимацию через 3 секунды
+            setTimeout(() => {
+              setIsPeeking(false);
+            }, 3000);
+          }
         }
       },
       {
@@ -92,6 +102,39 @@ export default function PromoSection() {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
 
+  // Функция для определения классов ширины карточки
+  const getCardWidthClasses = (width: string) => {
+    switch (width) {
+      case 'narrow':
+        return 'max-w-md lg:max-w-lg';
+      case 'medium':
+        return 'max-w-lg lg:max-w-xl';
+      case 'wide':
+        return 'max-w-xl lg:max-w-2xl';
+      default:
+        return 'max-w-md lg:max-w-lg';
+    }
+  };
+
+  // Функция для определения классов позиции карточки
+  const getCardPositionClasses = (position: string) => {
+    switch (position) {
+      case 'left':
+        return 'lg:justify-start';
+      case 'center':
+        return 'lg:justify-center';
+      case 'right':
+        return 'lg:justify-end';
+      default:
+        return 'lg:justify-start';
+    }
+  };
+
+  // Функция для переключения мобильной карточки
+  const toggleMobileCard = () => {
+    setIsMobileCardOpen(!isMobileCardOpen);
+  };
+
   // Формируем URL фоновых изображений
   const backgroundImageUrl = sectionData.background_image && promoData 
     ? getImageUrl(promoData, sectionData.background_image)
@@ -105,7 +148,8 @@ export default function PromoSection() {
     <section 
       ref={sectionRef} 
       id="promo" 
-      className={`relative min-h-screen flex items-center justify-center overflow-hidden ${isVisible ? 'reveal-on' : 'reveal-prep'}`}
+      className={`relative flex items-center justify-center overflow-hidden w-full ${isVisible ? 'reveal-on' : 'reveal-prep'}`}
+      style={{ minHeight: '100vh', width: '100%' }}
     >
       {/* Фоновое изображение */}
       <div className="absolute inset-0">
@@ -132,6 +176,7 @@ export default function PromoSection() {
         ></div>
       </div>
 
+
       {/* Декоративные элементы */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Красные и синие акценты - адаптивные размеры */}
@@ -147,26 +192,26 @@ export default function PromoSection() {
       </div>
 
       {/* Контент */}
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end lg:items-center min-h-screen py-12">
-            {/* Левая карточка с текстом */}
-            <div className={`w-full max-w-md lg:max-w-lg ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-red-500/20 shadow-2xl">
+      <div className="w-full relative z-10 h-full">
+        <div className="w-full h-full">
+          <div className={`flex items-end lg:items-center py-12 pb-0 ${getCardPositionClasses(sectionData.card_position)}`} style={{ minHeight: '100vh' }}>
+            {/* Динамическая карточка с текстом - скрыта на мобильных по умолчанию */}
+            <div className={`w-full px-4 ${getCardWidthClasses(sectionData.card_width)} ${isVisible ? 'animate-fade-in-up' : 'opacity-0'} hidden sm:block`}>
+              <div className="bg-black/30 sm:bg-black/40 lg:bg-black/50 rounded-2xl p-6 sm:p-8 lg:p-10 border border-red-500/20 shadow-2xl">
                 {/* Заголовок */}
                 <div className="mb-8">
                   <h2 className="hero-jab-title text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">{sectionData.title}</span>
+                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 drop-shadow-lg sm:drop-shadow-none">{sectionData.title}</span>
                   </h2>
                 </div>
 
                 {/* Подзаголовок */}
                 <div className={`mb-10 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{animationDelay: '0.2s'}}>
                   <div 
-                    className="hero-jab-text text-lg sm:text-xl text-gray-200 leading-relaxed prose prose-invert max-w-none"
+                    className="hero-jab-text text-lg sm:text-xl text-white sm:text-gray-200 leading-relaxed prose prose-invert max-w-none drop-shadow-lg sm:drop-shadow-none"
                     dangerouslySetInnerHTML={{ __html: cleanSubtitle }}
                     style={{
-                      '--tw-prose-body': '#e5e7eb',
+                      '--tw-prose-body': '#ffffff',
                       '--tw-prose-headings': '#ffffff',
                       '--tw-prose-links': '#ef4444',
                       '--tw-prose-bold': '#ffffff',
@@ -198,6 +243,92 @@ export default function PromoSection() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Мобильная выдвижная карточка */}
+      <div className={`absolute left-0 right-0 bottom-0 z-30 sm:hidden transform transition-transform duration-500 ease-out ${
+        isMobileCardOpen ? 'translate-y-0' : isPeeking ? 'animate-peek' : 'translate-y-[calc(100%-120px)]'
+      }`} style={{ 
+        maxHeight: '100vh', 
+        boxSizing: 'border-box',
+        overflowAnchor: 'none'
+      }}>
+        <div className={`bg-black/90 rounded-t-3xl shadow-2xl w-full pb-6 transition-all duration-300 ${!isMobileCardOpen ? 'border-t border-red-500/20 hover:shadow-red-500/20 hover:shadow-2xl' : ''}`} style={{ 
+          boxSizing: 'border-box'
+        }}>
+          {/* Индикатор для закрытия - показываем только когда карточка открыта */}
+          {isMobileCardOpen && (
+            <div className="flex justify-center pt-4 pb-2">
+              <button
+                onClick={toggleMobileCard}
+                className="w-12 h-1 bg-white/30 rounded-full hover:bg-white/50 transition-colors duration-300"
+              ></button>
+            </div>
+          )}
+
+          {/* Заголовок - всегда видимый и кликабельный */}
+          <div className="pt-4 pb-4 cursor-pointer group" onClick={toggleMobileCard}>
+            {/* Индикатор стрелки - сверху над заголовком */}
+            <div className="flex justify-center mb-2">
+              <div className={`transition-all duration-300 ${isMobileCardOpen ? 'rotate-180' : 'animate-bounce'}`}>
+                <svg 
+                  className="w-5 h-5 text-white/60 group-hover:text-white/80 transition-colors duration-300"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              </div>
+            </div>
+            <h2 className="hero-jab-title text-xl font-bold px-6">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 group-hover:from-red-300 group-hover:to-red-500 transition-all duration-300">
+                {sectionData.title}
+              </span>
+            </h2>
+          </div>
+
+          {/* Остальной контент - показываем только когда карточка открыта */}
+          {isMobileCardOpen && (
+            <div className="px-6 pt-0" style={{ boxSizing: 'border-box' }}>
+              {/* Подзаголовок */}
+              <div className="pb-8">
+                <div 
+                  className="hero-jab-text text-base text-white leading-relaxed prose prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: cleanSubtitle }}
+                  style={{
+                    '--tw-prose-body': '#ffffff',
+                    '--tw-prose-headings': '#ffffff',
+                    '--tw-prose-links': '#ef4444',
+                    '--tw-prose-bold': '#ffffff',
+                    '--tw-prose-strong': '#ffffff'
+                  } as React.CSSProperties}
+                />
+              </div>
+
+              {/* Кнопки */}
+              <div className="flex flex-col space-y-4 pb-4">
+                {/* Кнопка "Связаться с нами" */}
+                <Link
+                  href={sectionData.contact_button_link}
+                  className="group relative px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-lg rounded-lg overflow-hidden transition-all duration-300 hover:from-red-500 hover:to-red-600 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 text-center hero-jab-text"
+                >
+                  <span className="relative z-10">{sectionData.contact_button_text}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Link>
+
+                {/* Кнопка "Поддержать" */}
+                <Link
+                  href={sectionData.support_button_link}
+                  className="group relative px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 border-2 border-red-500 text-white font-bold text-lg rounded-lg overflow-hidden transition-all duration-300 hover:from-red-600 hover:to-red-700 hover:border-red-400 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 text-center hero-jab-text"
+                >
+                  <span className="relative z-10">{sectionData.support_button_text}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
