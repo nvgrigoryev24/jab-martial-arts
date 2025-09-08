@@ -8,6 +8,7 @@ import TrainersSection from "@/components/TrainersSection";
 import PricingSection from "@/components/PricingSection";
 import NewsSection from "@/components/NewsSection";
 import PunchingBagSection from "@/components/PunchingBagSection";
+import PromoSection from "@/components/PromoSection";
 import ScheduleSection from "@/components/ScheduleSection";
 import FAQSection from "@/components/FAQSection";
 import ContactSection from "@/components/ContactSection";
@@ -30,6 +31,7 @@ export default function MainRenderer() {
       <PricingSection />
       <NewsSection />
       <PunchingBagSection onPromoCodeGenerated={handlePromoCodeGenerated} />
+      <PromoSection />
       <ScheduleSection />
       <FAQSection />
       <ContactSection promoCode={promoCode} />

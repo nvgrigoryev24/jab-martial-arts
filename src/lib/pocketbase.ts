@@ -255,6 +255,21 @@ export interface CTABanner {
   updated: string;
 }
 
+export interface PromoSection {
+  id: string;
+  title: string;                    // Заголовок секции
+  subtitle: string;                 // Подзаголовок/описание
+  background_image?: string;        // Фоновое изображение
+  contact_button_text: string;       // Текст кнопки "Связаться с нами"
+  contact_button_link: string;      // Ссылка для связи
+  support_button_text: string;      // Текст кнопки "Поддержать"
+  support_button_link: string;      // Ссылка для поддержки
+  is_active: boolean;              // Активность секции
+  sort_order: number;              // Порядок показа
+  created: string;
+  updated: string;
+}
+
 export interface FAQ {
   id: string;
   question: string;         // Текст вопроса
@@ -404,6 +419,24 @@ export const getCTABanner = async (signal?: AbortSignal): Promise<CTABanner | nu
       return null;
     }
     console.error('Error fetching CTA banner:', error);
+    return null;
+  }
+};
+
+export const getPromoSection = async (signal?: AbortSignal): Promise<PromoSection | null> => {
+  try {
+    const records = await pb.collection('promo_section').getFullList<PromoSection>({
+      filter: 'is_active = true',
+      sort: 'sort_order',
+      limit: 1
+    });
+    return records.length > 0 ? records[0] : null;
+  } catch (error: any) {
+    // Игнорируем ошибки отмены запросов
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return null;
+    }
+    console.error('Error fetching promo section:', error);
     return null;
   }
 };
