@@ -84,7 +84,7 @@ export default function PromoSection() {
   // Формируем URL фонового изображения
   const backgroundImageUrl = sectionData.background_image && promoData 
     ? getImageUrl(promoData, sectionData.background_image)
-    : "/images/promo-kids-sport.jpg"; // Fallback изображение
+    : "/childsport.jpg"; // Временное изображение из public
 
   return (
     <section 
