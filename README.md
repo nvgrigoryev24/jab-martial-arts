@@ -1,45 +1,38 @@
 # JAB Martial Arts - School Website
 
-**Version:** 1.3.0  
+**Version:** 1.7.0  
 **Last Updated:** January 15, 2025  
 **Status:** ✅ Production Ready  
 **Repository:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
 
 This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school website, featuring modern design, interactive elements, and comprehensive content management through PocketBase.
 
-## 🚀 Latest Updates (v1.3.0)
+## 🚀 Latest Updates (v1.7.0)
 
-### 🎨 Dynamic Hero Section & Enhanced UI
-- **Dynamic Hero Content**: Complete Hero section content now loads from PocketBase
-- **Image Integration**: Proper image handling with fallback to placeholder
-- **Enhanced Hover Effects**: Beautiful interactive hover animations for Hero images
-- **Static Colors**: Colors remain static while content is fully dynamic
+### 🏫 Dynamic "About School" Section
+- **Complete PocketBase Integration**: Full dynamic content management for "About School" section
+- **Flexible Card System**: Add unlimited cards with customizable content
+- **Background Images**: Beautiful background photos with darkened overlays for text contrast
+- **JAB Style Consistency**: All cards use unified JAB style (red borders)
+- **Mobile Optimization**: Fixed overlay coverage issues on mobile devices
 
-### 🎨 Schedule Color Theme System
-- Dynamic color themes for training locations and levels via PocketBase
-- Customizable transparency settings (0-100%) with inline styles
-- Fallback system for backward compatibility
-- Integration with `color_theme` collection
-
-### 🏋️ Enhanced Training Schedule
-- Support for multiple coaches per training session
-- Improved filtering by locations and levels using real PocketBase data
-- Dynamic level detection from actual schedule data
-- Clean console without debug messages
+### 🎨 Enhanced Card Design
+- **CSS Pseudo-elements**: Borders via `::after`, overlays via `::before` for perfect coverage
+- **Optimized Composition**: Proper spacing and layout for better visual hierarchy
+- **Rich Text Support**: HTML content from PocketBase rich text editor
+- **Responsive Design**: Perfect display on all device sizes
 
 ### 🔧 Technical Improvements
-- Updated TypeScript interfaces for new collections
-- Enhanced PocketBase integration with proper expand parameters
-- Improved error handling for hot reload scenarios
-- Optimized data fetching and state management
-- GitHub integration and repository setup
+- **New PocketBase Collections**: `about_page` and `about_cards` for content management
+- **Updated TypeScript Interfaces**: Clean interfaces without unnecessary color theme dependencies
+- **Enhanced HTML Sanitization**: Improved `sanitizeHtmlForDisplay()` function
+- **Z-index Optimization**: Proper layer hierarchy for overlays and content
 
 ### 📚 Documentation Updates
-- Updated PocketBase collection setup guide
-- Added color theme examples for schedule
-- Enhanced technical documentation
-- Comprehensive backup system
-- GitHub repository documentation
+- **Updated PocketBase Setup Guide**: New collections and field configurations
+- **Comprehensive Changelog**: Detailed version history and changes
+- **Enhanced Project Guide**: Updated interfaces and feature descriptions
+- **Mobile-First Documentation**: Focus on responsive design solutions
 
 ## 🐙 GitHub Repository
 
