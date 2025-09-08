@@ -42,15 +42,15 @@ export default function FAQSection() {
   // Создаем категории для фильтрации (включая "Все вопросы")
   const categories = [
     { id: 'all', name: 'Все вопросы' },
-    ...faqCategories.map(category => ({
+    ...displayCategories.map(category => ({
       id: category.id,
       name: category.name
     }))
   ];
 
   const filteredFAQ = selectedCategory === 'all' 
-    ? faqs 
-    : faqs.filter(item => item.faq_category === selectedCategory);
+    ? displayFAQs 
+    : displayFAQs.filter(item => item.faq_category === selectedCategory);
 
   const toggleItem = (id: string) => {
     setOpenItems(prev => {
@@ -64,31 +64,96 @@ export default function FAQSection() {
   };
 
   const getCategoryColor = (faq: FAQ) => {
-    const category = faqCategories.find(cat => cat.id === faq.faq_category);
+    const category = displayCategories.find(cat => cat.id === faq.faq_category);
     if (category?.expand?.color_theme) {
       const theme = category.expand.color_theme;
-      return {
-        className: 'px-2 py-1 rounded-full text-xs font-medium border hero-jab-text',
-        style: {
-          backgroundColor: `${theme.bg_color}33`, // 20% opacity
-          color: theme.color,
-          borderColor: `${theme.border_color}4D` // 30% opacity
-        }
-      };
+      // Используем простые цвета для начала
+      switch (theme.name?.toLowerCase()) {
+        case 'red':
+          return 'bg-red-500/20 text-red-300 border-red-500/30';
+        case 'blue':
+          return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        case 'green':
+          return 'bg-green-500/20 text-green-300 border-green-500/30';
+        case 'purple':
+          return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+        case 'orange':
+          return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+        case 'yellow':
+          return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+        default:
+          return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+      }
     }
-    return {
-      className: 'px-2 py-1 rounded-full text-xs font-medium border hero-jab-text bg-gray-500/20 text-gray-300 border-gray-500/30',
-      style: {}
-    };
+    return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
 
   const getCategoryName = (faq: FAQ) => {
-    const category = faqCategories.find(cat => cat.id === faq.faq_category);
+    const category = displayCategories.find(cat => cat.id === faq.faq_category);
     return category?.name || 'Без категории';
   };
 
-  // Показываем индикатор загрузки
-  if (loading) {
+  // Fallback данные если PocketBase не работает
+  const fallbackFAQs: FAQ[] = [
+    {
+      id: 'fallback-1',
+      question: 'Сколько стоит первая тренировка?',
+      answer: 'Первая тренировка в нашей школе абсолютно бесплатна!',
+      faq_category: 'fallback-pricing',
+      is_active: true,
+      sort_order: 1,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString()
+    },
+    {
+      id: 'fallback-2',
+      question: 'В каких залах проходят тренировки?',
+      answer: 'У нас есть два спортивных зала: "Локомотив" и "Сопка".',
+      faq_category: 'fallback-training',
+      is_active: true,
+      sort_order: 2,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString()
+    }
+  ];
+
+  const fallbackCategories: FAQCategory[] = [
+    {
+      id: 'fallback-pricing',
+      name: 'Цены и оплата',
+      slug: 'pricing',
+      description: 'Вопросы о стоимости',
+      color_theme: 'red',
+      is_active: true,
+      sort_order: 1,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
+      expand: {
+        color_theme: { name: 'red' } as any
+      }
+    },
+    {
+      id: 'fallback-training',
+      name: 'Тренировки',
+      slug: 'training',
+      description: 'Вопросы о тренировках',
+      color_theme: 'blue',
+      is_active: true,
+      sort_order: 2,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
+      expand: {
+        color_theme: { name: 'blue' } as any
+      }
+    }
+  ];
+
+  // Используем fallback данные если нет данных из PocketBase
+  const displayFAQs = faqs.length > 0 ? faqs : fallbackFAQs;
+  const displayCategories = faqCategories.length > 0 ? faqCategories : fallbackCategories;
+
+  // Показываем индикатор загрузки только если данные еще загружаются
+  if (loading && faqs.length === 0) {
     return (
       <section id="faq" className="relative py-20 text-white overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
@@ -166,10 +231,7 @@ export default function FAQSection() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span 
-                        className={getCategoryColor(item).className}
-                        style={getCategoryColor(item).style}
-                      >
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border hero-jab-text ${getCategoryColor(item)}`}>
                         {getCategoryName(item)}
                       </span>
                     </div>
