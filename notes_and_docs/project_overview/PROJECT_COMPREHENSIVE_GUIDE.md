@@ -137,7 +137,7 @@ interface Location {
 }
 ```
 
-#### 3. **coaches** - Тренеры
+#### 4. **coaches** - Тренеры
 ```typescript
 interface Coach {
   id: string;
@@ -153,7 +153,7 @@ interface Coach {
 }
 ```
 
-#### 4. **color_theme** - Цветовые схемы
+#### 5. **color_theme** - Цветовые схемы
 ```typescript
 interface ColorTheme {
   id: string;
@@ -171,7 +171,7 @@ interface ColorTheme {
 }
 ```
 
-#### 5. **news_categories** - Категории новостей
+#### 6. **news_categories** - Категории новостей
 ```typescript
 interface NewsCategory {
   id: string;
@@ -189,7 +189,7 @@ interface NewsCategory {
 }
 ```
 
-#### 6. **news** - Новости
+#### 7. **news** - Новости
 ```typescript
 interface News {
   id: string;
@@ -208,7 +208,7 @@ interface News {
 }
 ```
 
-#### 7. **training_levels** - Уровни подготовки
+#### 8. **training_levels** - Уровни подготовки
 ```typescript
 interface TrainingLevel {
   id: string;
@@ -226,7 +226,7 @@ interface TrainingLevel {
 }
 ```
 
-#### 8. **hero_content** - Контент Hero секции
+#### 9. **hero_content** - Контент Hero секции
 ```typescript
 interface HeroContent {
   id: string;
@@ -246,7 +246,7 @@ interface HeroContent {
 }
 ```
 
-#### 9. **pricing_plans** - Тарифные планы
+#### 10. **pricing_plans** - Тарифные планы
 ```typescript
 interface PricingPlan {
   id: string;
@@ -263,7 +263,7 @@ interface PricingPlan {
 }
 ```
 
-#### 10. **contact_messages** - Сообщения контактов
+#### 11. **contact_messages** - Сообщения контактов
 ```typescript
 interface ContactMessage {
   id: string;
@@ -278,7 +278,7 @@ interface ContactMessage {
 }
 ```
 
-#### 11. **about_page** - Контент страницы "О школе"
+#### 12. **about_page** - Контент страницы "О школе"
 ```typescript
 interface AboutPage {
   id: string;
@@ -292,7 +292,7 @@ interface AboutPage {
 }
 ```
 
-#### 12. **about_cards** - Карточки раздела "О школе"
+#### 13. **about_cards** - Карточки раздела "О школе"
 ```typescript
 interface AboutCard {
   id: string;
@@ -307,7 +307,7 @@ interface AboutCard {
 }
 ```
 
-#### 13. **cta_banner** - CTA Баннер
+#### 3. **cta_banner** - CTA Баннер
 ```typescript
 interface CTABanner {
   id: string;
