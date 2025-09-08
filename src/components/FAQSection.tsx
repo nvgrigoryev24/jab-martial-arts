@@ -21,8 +21,6 @@ export default function FAQSection() {
           getFAQs(abortController.signal)
         ]);
         
-        console.log('FAQ Categories:', categoriesData);
-        console.log('FAQs:', faqsData);
         setFaqCategories(categoriesData);
         setFaqs(faqsData);
       } catch (error: any) {
@@ -67,14 +65,21 @@ export default function FAQSection() {
 
   const getCategoryColor = (faq: FAQ) => {
     const category = faqCategories.find(cat => cat.id === faq.faq_category);
-    console.log('Category found:', category);
-    console.log('Color theme:', category?.expand?.color_theme);
     if (category?.expand?.color_theme) {
-      const colorStyles = getColorThemeStyles(category.expand.color_theme);
-      console.log('Color styles:', colorStyles);
-      return `bg-[${category.expand.color_theme.bg_color}]/20 text-[${category.expand.color_theme.color}] border-[${category.expand.color_theme.border_color}]/30`;
+      const theme = category.expand.color_theme;
+      return {
+        className: 'px-2 py-1 rounded-full text-xs font-medium border hero-jab-text',
+        style: {
+          backgroundColor: `${theme.bg_color}33`, // 20% opacity
+          color: theme.color,
+          borderColor: `${theme.border_color}4D` // 30% opacity
+        }
+      };
     }
-    return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+    return {
+      className: 'px-2 py-1 rounded-full text-xs font-medium border hero-jab-text bg-gray-500/20 text-gray-300 border-gray-500/30',
+      style: {}
+    };
   };
 
   const getCategoryName = (faq: FAQ) => {
@@ -161,7 +166,10 @@ export default function FAQSection() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border hero-jab-text ${getCategoryColor(item)}`}>
+                      <span 
+                        className={getCategoryColor(item).className}
+                        style={getCategoryColor(item).style}
+                      >
                         {getCategoryName(item)}
                       </span>
                     </div>
