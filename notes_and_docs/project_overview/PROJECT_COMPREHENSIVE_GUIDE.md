@@ -307,6 +307,41 @@ interface AboutCard {
 }
 ```
 
+#### 14. **faq** - Часто задаваемые вопросы
+```typescript
+interface FAQ {
+  id: string;
+  question: string;         // Текст вопроса
+  answer: string;          // Ответ (rich text)
+  faq_category: string;    // ID категории (relation)
+  is_active: boolean;      // Активность
+  sort_order: number;      // Порядок сортировки
+  created: string;
+  updated: string;
+  expand?: {
+    faq_category?: FAQCategory;
+  };
+}
+```
+
+#### 15. **faq_categories** - Категории FAQ
+```typescript
+interface FAQCategory {
+  id: string;
+  name: string;            // Название категории
+  slug: string;            // URL-дружественное название
+  description: string;     // Описание категории
+  color_theme: string;    // ID цветовой схемы (relation)
+  is_active: boolean;     // Активность
+  sort_order: number;      // Порядок сортировки
+  created: string;
+  updated: string;
+  expand?: {
+    color_theme?: ColorTheme;
+  };
+}
+```
+
 #### 3. **cta_banner** - CTA Баннер
 ```typescript
 interface CTABanner {
@@ -387,7 +422,15 @@ interface CTABanner {
 - Адаптивные карточки новостей
 - Система публикации
 
-### 9. **Система контактов**
+### 9. **Система FAQ с категориями**
+- Категоризация вопросов по темам
+- Цветовые схемы для каждой категории
+- Rich text ответы с HTML форматированием
+- Гибкая система сортировки внутри категорий
+- Наследование цветов от категорий к вопросам
+- Адаптивный дизайн с аккордеоном
+
+### 10. **Система контактов**
 - Форма обратной связи
 - Интеграция с промокодами
 - Валидация полей
