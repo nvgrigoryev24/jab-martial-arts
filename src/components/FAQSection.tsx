@@ -21,6 +21,8 @@ export default function FAQSection() {
           getFAQs(abortController.signal)
         ]);
         
+        console.log('FAQ Categories:', categoriesData);
+        console.log('FAQs:', faqsData);
         setFaqCategories(categoriesData);
         setFaqs(faqsData);
       } catch (error: any) {
@@ -65,9 +67,12 @@ export default function FAQSection() {
 
   const getCategoryColor = (faq: FAQ) => {
     const category = faqCategories.find(cat => cat.id === faq.faq_category);
+    console.log('Category found:', category);
+    console.log('Color theme:', category?.expand?.color_theme);
     if (category?.expand?.color_theme) {
       const colorStyles = getColorThemeStyles(category.expand.color_theme);
-      return colorStyles.className;
+      console.log('Color styles:', colorStyles);
+      return `bg-[${category.expand.color_theme.bg_color}]/20 text-[${category.expand.color_theme.color}] border-[${category.expand.color_theme.border_color}]/30`;
     }
     return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
