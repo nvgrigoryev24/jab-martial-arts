@@ -242,6 +242,19 @@ export interface AboutCard {
   updated: string;
 }
 
+export interface CTABanner {
+  id: string;
+  title: string;            // Заголовок баннера
+  subtitle: string;         // Подзаголовок
+  button_text: string;      // Текст на кнопке
+  button_link: string;      // Ссылка кнопки
+  character_image?: string;  // Изображение персонажа
+  is_active: boolean;       // Активность
+  sort_order: number;       // Порядок сортировки
+  created: string;
+  updated: string;
+}
+
 // Функции для работы с данными
 export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
   try {
@@ -345,6 +358,24 @@ export const getAboutCards = async (signal?: AbortSignal): Promise<AboutCard[]> 
     }
     console.error('Error fetching about cards:', error);
     return [];
+  }
+};
+
+export const getCTABanner = async (signal?: AbortSignal): Promise<CTABanner | null> => {
+  try {
+    const records = await pb.collection('cta_banner').getFullList<CTABanner>({
+      filter: 'is_active = true',
+      sort: 'sort_order',
+      limit: 1
+    });
+    return records.length > 0 ? records[0] : null;
+  } catch (error: any) {
+    // Игнорируем ошибки отмены запросов
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return null;
+    }
+    console.error('Error fetching CTA banner:', error);
+    return null;
   }
 };
 

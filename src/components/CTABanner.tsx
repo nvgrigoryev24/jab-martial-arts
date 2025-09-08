@@ -3,10 +3,37 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { getCTABanner, CTABanner as CTABannerType, getImageUrl } from '@/lib/pocketbase';
 
 export default function CTABanner() {
   const [isVisible, setIsVisible] = useState(false);
+  const [ctaBanner, setCtaBanner] = useState<CTABannerType | null>(null);
+  const [loading, setLoading] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
+
+  // Загрузка данных CTA баннера из PocketBase
+  useEffect(() => {
+    const abortController = new AbortController();
+    
+    const fetchCTABanner = async () => {
+      try {
+        const banner = await getCTABanner(abortController.signal);
+        setCtaBanner(banner);
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error fetching CTA banner:', error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCTABanner();
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -30,6 +57,36 @@ export default function CTABanner() {
       }
     };
   }, []);
+
+  // Показываем индикатор загрузки
+  if (loading) {
+    return (
+      <section ref={sectionRef} className="relative py-12 sm:py-16 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Если нет данных из PocketBase, используем дефолтные значения
+  const bannerData = ctaBanner || {
+    title: "ЗАПИШИСЬ НА ПРОБНОЕ ЗАНЯТИЕ",
+    subtitle: "БЕСПЛАТНО!",
+    button_text: "БОКСИРОВАТЬ",
+    button_link: "#contact",
+    character_image: null
+  };
+
+  // Формируем URL изображения персонажа
+  const characterImageUrl = bannerData.character_image && ctaBanner 
+    ? getImageUrl(ctaBanner, bannerData.character_image)
+    : "/20250902_0624_Указующий мультяшный стиль_remix_01k4476rjre9naxk7ndrhevksy.png";
+
   return (
     <section ref={sectionRef} className="relative py-12 sm:py-16 text-white overflow-hidden">
       {/* Декоративные элементы */}
@@ -55,27 +112,19 @@ export default function CTABanner() {
               <div className="bg-black/90 backdrop-blur-sm rounded-2xl border border-red-500/30 p-3 sm:p-6 md:p-8 lg:p-14 w-full shadow-2xl">
                 <h2 className="hero-jab-title text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 text-center">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
-                    ЗАПИШИСЬ НА
-                  </span>
-                  <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
-                    ПРОБНОЕ
-                  </span>
-                  <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
-                    ЗАНЯТИЕ
+                    {bannerData.title}
                   </span>
                 </h2>
                 <p className="hero-jab-text text-xs sm:text-base md:text-lg text-white mb-2 sm:mb-4 md:mb-6 text-center font-bold">
-                  БЕСПЛАТНО!
+                  {bannerData.subtitle}
                 </p>
                 
                 <div className="text-center">
                   <Link
-                    href="#contact"
+                    href={bannerData.button_link}
                     className="relative px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl font-bold text-xs sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hero-jab-text text-center cursor-glove bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-red-500/25 hover:from-red-700 hover:to-red-800 inline-block w-full smooth-scroll"
                   >
-                    <span className="relative z-10">БОКСИРОВАТЬ</span>
+                    <span className="relative z-10">{bannerData.button_text}</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                   </Link>
                 </div>
@@ -90,7 +139,7 @@ export default function CTABanner() {
                   : 'opacity-0 translate-x-12 scale-75 rotate-2'
               }`}>
                 <Image 
-                  src="/20250902_0624_Указующий мультяшный стиль_remix_01k4476rjre9naxk7ndrhevksy.png"
+                  src={characterImageUrl}
                   alt="Тренер JAB указывает на кнопку"
                   width={600}
                   height={600}
