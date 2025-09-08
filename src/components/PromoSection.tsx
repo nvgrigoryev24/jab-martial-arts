@@ -73,18 +73,33 @@ export default function PromoSection() {
   // Если нет данных из PocketBase, используем дефолтные значения
   const sectionData = promoData || {
     title: "Бесплатный спорт для детей",
-    subtitle: "Дайте своему ребенку возможность заниматься спортом бесплатно. Мы предоставляем качественные тренировки по боксу и кикбоксингу для детей от 6 лет.",
+    subtitle: "<p>Дайте своему ребенку возможность заниматься спортом <strong>бесплатно</strong>.</p><p>Мы предоставляем качественные тренировки по боксу и кикбоксингу для детей от 6 лет.</p>",
     contact_button_text: "Связаться с нами",
     contact_button_link: "#contact",
     support_button_text: "Поддержать",
     support_button_link: "#support",
-    background_image: null
+    background_image: null,
+    background_image_mobile: null,
+    overlay_opacity: 40,
+    card_position: "left",
+    card_width: "narrow"
   };
 
-  // Формируем URL фонового изображения
+  // Очистка HTML entities для корректного отображения
+  const cleanSubtitle = sectionData.subtitle
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+
+  // Формируем URL фоновых изображений
   const backgroundImageUrl = sectionData.background_image && promoData 
     ? getImageUrl(promoData, sectionData.background_image)
-    : "/childsport.jpg"; // Временное изображение из public
+    : "/childsport.jpg"; // Временное изображение из public для десктопа
+  
+  const backgroundImageUrlMobile = sectionData.background_image_mobile && promoData 
+    ? getImageUrl(promoData, sectionData.background_image_mobile)
+    : "/childsportMob.jpg"; // Временное изображение из public для мобильных
 
   return (
     <section 
@@ -94,15 +109,27 @@ export default function PromoSection() {
     >
       {/* Фоновое изображение */}
       <div className="absolute inset-0">
+        {/* Изображение для десктопа */}
         <Image
           src={backgroundImageUrl}
           alt="Дети занимаются спортом"
           fill
-          className="object-cover"
+          className="object-cover hidden sm:block"
+          priority
+        />
+        {/* Изображение для мобильных */}
+        <Image
+          src={backgroundImageUrlMobile}
+          alt="Дети занимаются спортом"
+          fill
+          className="object-cover block sm:hidden"
           priority
         />
         {/* Темный оверлей для читаемости текста */}
-        <div className="absolute inset-0 bg-black/60"></div>
+        <div 
+          className="absolute inset-0 bg-black" 
+          style={{ opacity: sectionData.overlay_opacity / 100 }}
+        ></div>
       </div>
 
       {/* Декоративные элементы */}
@@ -121,41 +148,55 @@ export default function PromoSection() {
 
       {/* Контент */}
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Заголовок */}
-          <div className={`mb-6 sm:mb-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6">
-              <span className="block text-red-500 mb-2 sm:mb-3">🎁</span>
-              <span className="block hero-jab-text">{sectionData.title}</span>
-            </h2>
-          </div>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-end lg:items-center min-h-screen py-12">
+            {/* Левая карточка с текстом */}
+            <div className={`w-full max-w-md lg:max-w-lg ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-8 lg:p-10 border border-red-500/20 shadow-2xl">
+                {/* Заголовок */}
+                <div className="mb-8">
+                  <h2 className="hero-jab-title text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">{sectionData.title}</span>
+                  </h2>
+                </div>
 
-          {/* Подзаголовок */}
-          <div className={`mb-8 sm:mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{animationDelay: '0.2s'}}>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-200 leading-relaxed max-w-3xl mx-auto">
-              {sectionData.subtitle}
-            </p>
-          </div>
+                {/* Подзаголовок */}
+                <div className={`mb-10 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{animationDelay: '0.2s'}}>
+                  <div 
+                    className="hero-jab-text text-lg sm:text-xl text-gray-200 leading-relaxed prose prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: cleanSubtitle }}
+                    style={{
+                      '--tw-prose-body': '#e5e7eb',
+                      '--tw-prose-headings': '#ffffff',
+                      '--tw-prose-links': '#ef4444',
+                      '--tw-prose-bold': '#ffffff',
+                      '--tw-prose-strong': '#ffffff'
+                    } as React.CSSProperties}
+                  />
+                </div>
 
-          {/* Кнопки */}
-          <div className={`flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{animationDelay: '0.4s'}}>
-            {/* Кнопка "Связаться с нами" */}
-            <Link
-              href={sectionData.contact_button_link}
-              className="group relative px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-lg rounded-lg overflow-hidden transition-all duration-300 hover:from-red-500 hover:to-red-600 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 min-w-[200px] text-center"
-            >
-              <span className="relative z-10">{sectionData.contact_button_text}</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Link>
+                {/* Кнопки */}
+                <div className={`flex flex-col sm:flex-row gap-6 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{animationDelay: '0.4s'}}>
+                  {/* Кнопка "Связаться с нами" */}
+                  <Link
+                    href={sectionData.contact_button_link}
+                    className="group relative px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-lg rounded-lg overflow-hidden transition-all duration-300 hover:from-red-500 hover:to-red-600 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 text-center hero-jab-text"
+                  >
+                    <span className="relative z-10">{sectionData.contact_button_text}</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </Link>
 
-            {/* Кнопка "Поддержать" */}
-            <Link
-              href={sectionData.support_button_link}
-              className="group relative px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 border-2 border-red-500 text-white font-bold text-lg rounded-lg overflow-hidden transition-all duration-300 hover:from-red-600 hover:to-red-700 hover:border-red-400 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 min-w-[200px] text-center"
-            >
-              <span className="relative z-10">{sectionData.support_button_text}</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Link>
+                  {/* Кнопка "Поддержать" */}
+                  <Link
+                    href={sectionData.support_button_link}
+                    className="group relative px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 border-2 border-red-500 text-white font-bold text-lg rounded-lg overflow-hidden transition-all duration-300 hover:from-red-600 hover:to-red-700 hover:border-red-400 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 text-center hero-jab-text"
+                  >
+                    <span className="relative z-10">{sectionData.support_button_text}</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

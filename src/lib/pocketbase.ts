@@ -258,12 +258,16 @@ export interface CTABanner {
 export interface PromoSection {
   id: string;
   title: string;                    // Заголовок секции
-  subtitle: string;                 // Подзаголовок/описание
-  background_image?: string;        // Фоновое изображение
+  subtitle: string;                 // Подзаголовок/описание (rich text)
+  background_image?: string;        // Фоновое изображение для десктопа
+  background_image_mobile?: string; // Фоновое изображение для мобильных
+  overlay_opacity: number;          // Прозрачность оверлея (0-100)
   contact_button_text: string;       // Текст кнопки "Связаться с нами"
   contact_button_link: string;      // Ссылка для связи
   support_button_text: string;      // Текст кнопки "Поддержать"
   support_button_link: string;      // Ссылка для поддержки
+  card_position: string;            // Позиция карточки (left/center/right)
+  card_width: string;               // Ширина карточки (narrow/medium/wide)
   is_active: boolean;              // Активность секции
   sort_order: number;              // Порядок показа
   created: string;
