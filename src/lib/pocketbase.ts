@@ -255,6 +255,35 @@ export interface CTABanner {
   updated: string;
 }
 
+export interface FAQ {
+  id: string;
+  question: string;         // Текст вопроса
+  answer: string;          // Ответ (rich text)
+  faq_category: string;    // ID категории (relation)
+  is_active: boolean;      // Активность
+  sort_order: number;      // Порядок сортировки
+  created: string;
+  updated: string;
+  expand?: {
+    faq_category?: FAQCategory;
+  };
+}
+
+export interface FAQCategory {
+  id: string;
+  name: string;            // Название категории
+  slug: string;            // URL-дружественное название
+  description: string;     // Описание категории
+  color_theme: string;    // ID цветовой схемы (relation)
+  is_active: boolean;     // Активность
+  sort_order: number;      // Порядок сортировки
+  created: string;
+  updated: string;
+  expand?: {
+    color_theme?: ColorTheme;
+  };
+}
+
 // Функции для работы с данными
 export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
   try {
@@ -376,6 +405,42 @@ export const getCTABanner = async (signal?: AbortSignal): Promise<CTABanner | nu
     }
     console.error('Error fetching CTA banner:', error);
     return null;
+  }
+};
+
+export const getFAQCategories = async (signal?: AbortSignal): Promise<FAQCategory[]> => {
+  try {
+    const records = await pb.collection('faq_categories').getFullList<FAQCategory>({
+      filter: 'is_active = true',
+      expand: 'color_theme',
+      sort: 'sort_order'
+    });
+    return records;
+  } catch (error: any) {
+    // Игнорируем ошибки отмены запросов
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    console.error('Error fetching FAQ categories:', error);
+    return [];
+  }
+};
+
+export const getFAQs = async (signal?: AbortSignal): Promise<FAQ[]> => {
+  try {
+    const records = await pb.collection('faq').getFullList<FAQ>({
+      filter: 'is_active = true',
+      expand: 'faq_category.color_theme',
+      sort: 'sort_order'
+    });
+    return records;
+  } catch (error: any) {
+    // Игнорируем ошибки отмены запросов
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    console.error('Error fetching FAQs:', error);
+    return [];
   }
 };
 

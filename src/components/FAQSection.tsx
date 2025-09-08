@@ -1,94 +1,56 @@
 'use client';
 
-import { useState } from 'react';
-
-interface FAQItem {
-  id: string;
-  question: string;
-  answer: string;
-  category: string;
-}
+import { useState, useEffect } from 'react';
+import { getFAQCategories, getFAQs, FAQ, FAQCategory, getColorThemeStyles, sanitizeHtmlForDisplay } from '@/lib/pocketbase';
 
 export default function FAQSection() {
   const [openItems, setOpenItems] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [faqCategories, setFaqCategories] = useState<FAQCategory[]>([]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const faqData: FAQItem[] = [
-    {
-      id: '1',
-      question: 'Сколько стоит первая тренировка?',
-      answer: 'Первая тренировка в нашей школе абсолютно бесплатна! Это отличная возможность познакомиться с тренерами, оценить уровень подготовки и понять, подходит ли вам наш стиль обучения.',
-      category: 'pricing'
-    },
-    {
-      id: '2',
-      question: 'В каких залах проходят тренировки?',
-      answer: 'У нас есть два спортивных зала: "Локомотив" и "Сопка". Оба зала оборудованы современным спортивным инвентарем и подходят для занятий различными видами единоборств.',
-      category: 'training'
-    },
-    {
-      id: '3',
-      question: 'Нужна ли специальная физическая подготовка?',
-      answer: 'Нет, специальная подготовка не требуется! Мы принимаем учеников любого уровня подготовки. Наши тренеры адаптируют программу под ваши возможности и постепенно повышают нагрузку.',
-      category: 'training'
-    },
-    {
-      id: '4',
-      question: 'Какое расписание тренировок?',
-      answer: 'Мы работаем с понедельника по воскресенье с 7:00 до 22:00. У нас есть утренние и вечерние группы, а также занятия в выходные дни. Вы можете выбрать наиболее удобное для вас время.',
-      category: 'schedule'
-    },
-    {
-      id: '5',
-      question: 'Предоставляете ли вы экипировку?',
-      answer: 'Да, мы предоставляем всю необходимую экипировку для первых тренировок. В дальнейшем рекомендуем приобрести личную экипировку для комфорта и гигиены.',
-      category: 'equipment'
-    },
-    {
-      id: '6',
-      question: 'Есть ли возрастные ограничения?',
-      answer: 'Мы принимаем учеников от 14 лет. Для несовершеннолетних требуется согласие родителей. Верхнего возрастного ограничения нет - спорт полезен в любом возрасте!',
-      category: 'age'
-    },
-    {
-      id: '7',
-      question: 'Можно ли заниматься индивидуально?',
-      answer: 'Да, мы предлагаем индивидуальные тренировки с персональным тренером. Это отличный вариант для тех, кто хочет более интенсивную подготовку или имеет специфические цели.',
-      category: 'training'
-    },
-    {
-      id: '8',
-      question: 'Как записаться на тренировку?',
-      answer: 'Вы можете записаться через наш сайт, позвонить по телефону или прийти лично в школу. Мы рекомендуем предварительную запись, чтобы гарантировать место в группе.',
-      category: 'booking'
-    },
-    {
-      id: '9',
-      question: 'Что взять с собой на первую тренировку?',
-      answer: 'Возьмите с собой спортивную форму, сменную обувь и бутылку воды. Экипировку мы предоставим. Главное - хорошее настроение и желание заниматься!',
-      category: 'equipment'
-    },
-    {
-      id: '10',
-      question: 'Есть ли скидки для студентов?',
-      answer: 'Да, у нас действуют специальные скидки для студентов при предъявлении студенческого билета. Также есть семейные скидки и скидки при покупке абонемента на длительный период.',
-      category: 'pricing'
-    }
-  ];
+  // Загрузка данных FAQ из PocketBase
+  useEffect(() => {
+    const abortController = new AbortController();
+    
+    const fetchFAQData = async () => {
+      try {
+        const [categoriesData, faqsData] = await Promise.all([
+          getFAQCategories(abortController.signal),
+          getFAQs(abortController.signal)
+        ]);
+        
+        setFaqCategories(categoriesData);
+        setFaqs(faqsData);
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error fetching FAQ data:', error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchFAQData();
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
+
+  // Создаем категории для фильтрации (включая "Все вопросы")
   const categories = [
     { id: 'all', name: 'Все вопросы' },
-    { id: 'pricing', name: 'Цены и оплата' },
-    { id: 'training', name: 'Тренировки' },
-    { id: 'schedule', name: 'Расписание' },
-    { id: 'equipment', name: 'Экипировка' },
-    { id: 'age', name: 'Возраст' },
-    { id: 'booking', name: 'Запись' }
+    ...faqCategories.map(category => ({
+      id: category.id,
+      name: category.name
+    }))
   ];
 
   const filteredFAQ = selectedCategory === 'all' 
-    ? faqData 
-    : faqData.filter(item => item.category === selectedCategory);
+    ? faqs 
+    : faqs.filter(item => item.faq_category === selectedCategory);
 
   const toggleItem = (id: string) => {
     setOpenItems(prev => {
@@ -101,24 +63,34 @@ export default function FAQSection() {
     });
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'pricing':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
-      case 'training':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
-      case 'schedule':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      case 'equipment':
-        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      case 'age':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-      case 'booking':
-        return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+  const getCategoryColor = (faq: FAQ) => {
+    const category = faqCategories.find(cat => cat.id === faq.faq_category);
+    if (category?.expand?.color_theme) {
+      const colorStyles = getColorThemeStyles(category.expand.color_theme);
+      return colorStyles.className;
     }
+    return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
+
+  const getCategoryName = (faq: FAQ) => {
+    const category = faqCategories.find(cat => cat.id === faq.faq_category);
+    return category?.name || 'Без категории';
+  };
+
+  // Показываем индикатор загрузки
+  if (loading) {
+    return (
+      <section id="faq" className="relative py-20 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="faq" className="relative py-20 text-white overflow-hidden">
@@ -184,8 +156,8 @@ export default function FAQSection() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border hero-jab-text ${getCategoryColor(item.category)}`}>
-                        {categories.find(cat => cat.id === item.category)?.name}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border hero-jab-text ${getCategoryColor(item)}`}>
+                        {getCategoryName(item)}
                       </span>
                     </div>
                     <h3 className="hero-jab-text text-base font-semibold text-white group-hover:text-red-300 transition-colors">
@@ -202,9 +174,12 @@ export default function FAQSection() {
                 <div className={`overflow-hidden transition-all duration-300 ${openItems.includes(item.id) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                   <div className="px-4 pb-4">
                     <div className="border-t border-red-500/20 pt-3">
-                      <p className="hero-jab-text text-gray-300 leading-relaxed text-sm">
-                        {item.answer}
-                      </p>
+                      <div 
+                        className="hero-jab-text text-gray-300 leading-relaxed text-sm"
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeHtmlForDisplay(item.answer)
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
