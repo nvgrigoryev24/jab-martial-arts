@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getFAQCategories, getFAQs, FAQ, FAQCategory, getColorThemeStyles, sanitizeHtmlForDisplay } from '@/lib/pocketbase';
+import { getFAQCategories, getFAQs, FAQ, FAQCategory } from '@/lib/pocketbase';
 
 export default function FAQSection() {
   const [openItems, setOpenItems] = useState<string[]>([]);
@@ -39,60 +39,6 @@ export default function FAQSection() {
     };
   }, []);
 
-  // Создаем категории для фильтрации (включая "Все вопросы")
-  const categories = [
-    { id: 'all', name: 'Все вопросы' },
-    ...displayCategories.map(category => ({
-      id: category.id,
-      name: category.name
-    }))
-  ];
-
-  const filteredFAQ = selectedCategory === 'all' 
-    ? displayFAQs 
-    : displayFAQs.filter(item => item.faq_category === selectedCategory);
-
-  const toggleItem = (id: string) => {
-    setOpenItems(prev => {
-      // Если элемент уже открыт, закрываем его
-      if (prev.includes(id)) {
-        return prev.filter(item => item !== id);
-      }
-      // Если элемент закрыт, открываем только его (закрываем все остальные)
-      return [id];
-    });
-  };
-
-  const getCategoryColor = (faq: FAQ) => {
-    const category = displayCategories.find(cat => cat.id === faq.faq_category);
-    if (category?.expand?.color_theme) {
-      const theme = category.expand.color_theme;
-      // Используем простые цвета для начала
-      switch (theme.name?.toLowerCase()) {
-        case 'red':
-          return 'bg-red-500/20 text-red-300 border-red-500/30';
-        case 'blue':
-          return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-        case 'green':
-          return 'bg-green-500/20 text-green-300 border-green-500/30';
-        case 'purple':
-          return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-        case 'orange':
-          return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-        case 'yellow':
-          return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-        default:
-          return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-      }
-    }
-    return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-  };
-
-  const getCategoryName = (faq: FAQ) => {
-    const category = displayCategories.find(cat => cat.id === faq.faq_category);
-    return category?.name || 'Без категории';
-  };
-
   // Fallback данные если PocketBase не работает
   const fallbackFAQs: FAQ[] = [
     {
@@ -129,7 +75,18 @@ export default function FAQSection() {
       created: new Date().toISOString(),
       updated: new Date().toISOString(),
       expand: {
-        color_theme: { name: 'red' } as any
+        color_theme: { 
+          id: 'red-theme',
+          name: 'red',
+          bg_color: '#ef4444',
+          color: '#fca5a5',
+          border_color: '#dc2626',
+          transparency: 20,
+          is_active: true,
+          sort_order: 1,
+          created: new Date().toISOString(),
+          updated: new Date().toISOString()
+        }
       }
     },
     {
@@ -143,7 +100,18 @@ export default function FAQSection() {
       created: new Date().toISOString(),
       updated: new Date().toISOString(),
       expand: {
-        color_theme: { name: 'blue' } as any
+        color_theme: { 
+          id: 'blue-theme',
+          name: 'blue',
+          bg_color: '#3b82f6',
+          color: '#93c5fd',
+          border_color: '#2563eb',
+          transparency: 20,
+          is_active: true,
+          sort_order: 2,
+          created: new Date().toISOString(),
+          updated: new Date().toISOString()
+        }
       }
     }
   ];
@@ -151,6 +119,77 @@ export default function FAQSection() {
   // Используем fallback данные если нет данных из PocketBase
   const displayFAQs = faqs.length > 0 ? faqs : fallbackFAQs;
   const displayCategories = faqCategories.length > 0 ? faqCategories : fallbackCategories;
+
+  // Создаем категории для фильтрации (включая "Все вопросы")
+  const categories = [
+    { id: 'all', name: 'Все вопросы' },
+    ...displayCategories.map(category => ({
+      id: category.id,
+      name: category.name
+    }))
+  ];
+
+  const filteredFAQ = selectedCategory === 'all' 
+    ? displayFAQs 
+    : displayFAQs.filter(item => item.faq_category === selectedCategory);
+
+  const toggleItem = (id: string) => {
+    setOpenItems(prev => {
+      // Если элемент уже открыт, закрываем его
+      if (prev.includes(id)) {
+        return prev.filter(item => item !== id);
+      }
+      // Если элемент закрыт, открываем только его (закрываем все остальные)
+      return [id];
+    });
+  };
+
+  const getCategoryColor = (faq: FAQ) => {
+    // Проверяем expand в самом FAQ
+    if (faq.expand?.faq_category?.expand?.color_theme) {
+      const theme = faq.expand.faq_category.expand.color_theme;
+      // Используем простые цвета для начала
+      switch (theme.name?.toLowerCase()) {
+        case 'red':
+        case 'красная':
+        case 'красный':
+          return 'bg-red-500/20 text-red-300 border-red-500/30';
+        case 'blue':
+        case 'синяя':
+        case 'синий':
+          return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        case 'green':
+        case 'зеленая':
+        case 'зеленый':
+          return 'bg-green-500/20 text-green-300 border-green-500/30';
+        case 'purple':
+        case 'фиолетовая':
+        case 'фиолетовый':
+          return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+        case 'orange':
+        case 'оранжевая':
+        case 'оранжевый':
+          return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+        case 'yellow':
+        case 'желтая':
+        case 'желтый':
+          return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+        default:
+          return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+      }
+    }
+    return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+  };
+
+  const getCategoryName = (faq: FAQ) => {
+    // Проверяем expand в самом FAQ
+    if (faq.expand?.faq_category) {
+      return faq.expand.faq_category.name;
+    }
+    // Fallback к displayCategories
+    const category = displayCategories.find(cat => cat.id === faq.faq_category);
+    return category?.name || 'Без категории';
+  };
 
   // Показываем индикатор загрузки только если данные еще загружаются
   if (loading && faqs.length === 0) {
@@ -250,10 +289,28 @@ export default function FAQSection() {
                   <div className="px-4 pb-4">
                     <div className="border-t border-red-500/20 pt-3">
                       <div 
-                        className="hero-jab-text text-gray-300 leading-relaxed text-sm"
+                        className="hero-jab-text text-gray-300 leading-relaxed text-sm prose prose-invert max-w-none"
                         dangerouslySetInnerHTML={{
-                          __html: sanitizeHtmlForDisplay(item.answer)
+                          __html: item.answer.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
                         }}
+                        style={{
+                          '--tw-prose-body': '#d1d5db',
+                          '--tw-prose-headings': '#ffffff',
+                          '--tw-prose-lead': '#9ca3af',
+                          '--tw-prose-links': '#ef4444',
+                          '--tw-prose-bold': '#ffffff',
+                          '--tw-prose-counters': '#9ca3af',
+                          '--tw-prose-bullets': '#6b7280',
+                          '--tw-prose-hr': '#374151',
+                          '--tw-prose-quotes': '#ffffff',
+                          '--tw-prose-quote-borders': '#374151',
+                          '--tw-prose-captions': '#9ca3af',
+                          '--tw-prose-code': '#ffffff',
+                          '--tw-prose-pre-code': '#d1d5db',
+                          '--tw-prose-pre-bg': '#111827',
+                          '--tw-prose-th-borders': '#374151',
+                          '--tw-prose-td-borders': '#374151'
+                        } as React.CSSProperties}
                       />
                     </div>
                   </div>

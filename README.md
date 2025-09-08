@@ -1,13 +1,13 @@
 # JAB Martial Arts - School Website
 
-**Version:** 1.7.0  
+**Version:** 1.8.0  
 **Last Updated:** January 15, 2025  
 **Status:** ✅ Production Ready  
 **Repository:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
 
 This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school website, featuring modern design, interactive elements, and comprehensive content management through PocketBase.
 
-## 🚀 Latest Updates (v1.7.0)
+## 🚀 Latest Updates (v1.8.0)
 
 ### 🏫 Dynamic "About School" Section
 - **Complete PocketBase Integration**: Full dynamic content management for "About School" section
@@ -22,11 +22,19 @@ This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school webs
 - **Rich Text Support**: HTML content from PocketBase rich text editor
 - **Responsive Design**: Perfect display on all device sizes
 
+### ❓ Dynamic FAQ System
+- **Category-based Organization**: Questions grouped by topics with color-coded badges
+- **Rich Text Answers**: HTML formatting support with proper paragraph spacing
+- **Color Theme Integration**: Dynamic colors inherited from category themes
+- **Russian Language Support**: Full support for Russian color theme names
+- **Responsive Accordion**: Smooth expand/collapse animations
+
 ### 🔧 Technical Improvements
-- **New PocketBase Collections**: `about_page` and `about_cards` for content management
-- **Updated TypeScript Interfaces**: Clean interfaces without unnecessary color theme dependencies
+- **New PocketBase Collections**: `about_page`, `about_cards`, `faq`, and `faq_categories`
+- **Updated TypeScript Interfaces**: Clean interfaces with proper expand relationships
 - **Enhanced HTML Sanitization**: Improved `sanitizeHtmlForDisplay()` function
 - **Z-index Optimization**: Proper layer hierarchy for overlays and content
+- **CSS Prose Styling**: Tailwind prose classes for rich text formatting
 
 ### 📚 Documentation Updates
 - **Updated PocketBase Setup Guide**: New collections and field configurations

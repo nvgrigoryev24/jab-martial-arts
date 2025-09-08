@@ -1213,3 +1213,12 @@ a[href^="#"] {
 section[id] {
   /* scroll-margin-top отключен для тестирования */
 }
+
+/* ===== СТИЛИ ДЛЯ FAQ АБЗАЦЕВ ===== */
+.prose.prose-invert p {
+  margin-bottom: 1rem;
+}
+
+.prose.prose-invert p:last-child {
+  margin-bottom: 0;
+}
