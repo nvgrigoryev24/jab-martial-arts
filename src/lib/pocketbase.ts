@@ -219,6 +219,29 @@ export interface News {
   };
 }
 
+export interface AboutPage {
+  id: string;
+  section_title: string;     // Заголовок секции
+  section_subtitle: string;  // Подзаголовок
+  bottom_banner_text: string; // Текст нижнего баннера
+  is_active: boolean;        // Активность
+  sort_order: number;       // Порядок сортировки
+  created: string;
+  updated: string;
+}
+
+export interface AboutCard {
+  id: string;
+  title: string;            // Заголовок карточки
+  description: string;      // Описание карточки
+  icon: string;            // Эмодзи иконка
+  background_image?: string; // Фоновое изображение карточки
+  is_active: boolean;      // Активность
+  sort_order: number;      // Порядок сортировки
+  created: string;
+  updated: string;
+}
+
 // Функции для работы с данными
 export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
   try {
@@ -287,6 +310,41 @@ export const getHeroContent = async (): Promise<HeroContent | null> => {
     }
     console.error('Error fetching hero content:', error);
     return null;
+  }
+};
+
+export const getAboutPage = async (): Promise<AboutPage | null> => {
+  try {
+    const records = await pb.collection('about_page').getFullList<AboutPage>({
+      filter: 'is_active = true',
+      sort: 'sort_order',
+      limit: 1
+    });
+    return records.length > 0 ? records[0] : null;
+  } catch (error: any) {
+    // Игнорируем ошибки автоперезагрузки Next.js
+    if (error?.status === 0 && error?.message?.includes('autocancelled')) {
+      return null;
+    }
+    console.error('Error fetching about page:', error);
+    return null;
+  }
+};
+
+export const getAboutCards = async (signal?: AbortSignal): Promise<AboutCard[]> => {
+  try {
+    const records = await pb.collection('about_cards').getFullList<AboutCard>({
+      filter: 'is_active = true',
+      sort: 'sort_order'
+    });
+    return records;
+  } catch (error: any) {
+    // Игнорируем ошибки отмены запросов
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    console.error('Error fetching about cards:', error);
+    return [];
   }
 };
 
@@ -461,7 +519,7 @@ export const sanitizeHtmlForDisplay = (html: string): string => {
   if (!html) return '';
   
   // Разрешенные теги для форматирования
-  const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li'];
+  const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'span', 'div'];
   
   // Убираем нежелательные теги и атрибуты
   let cleanHtml = html
@@ -472,17 +530,25 @@ export const sanitizeHtmlForDisplay = (html: string): string => {
     .replace(/\r\n/g, '\n') // Нормализуем переносы строк
     .replace(/\r/g, '\n');
   
-  // Оставляем только разрешенные теги
+  // Оставляем только разрешенные теги и убираем атрибуты
   const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g;
   cleanHtml = cleanHtml.replace(tagRegex, (match, tagName) => {
     if (allowedTags.includes(tagName.toLowerCase())) {
-      // Убираем атрибуты из разрешенных тегов
+      // Убираем все атрибуты из разрешенных тегов
       return match.replace(/\s+[^>]*/, '').replace(/\s*>/, '>');
     }
     return ''; // Убираем неразрешенные теги
   });
   
-  return cleanHtml.trim();
+  // Дополнительная очистка - убираем пустые теги
+  cleanHtml = cleanHtml
+    .replace(/<p><\/p>/gi, '') // Убираем пустые параграфы
+    .replace(/<div><\/div>/gi, '') // Убираем пустые div'ы
+    .replace(/<br\s*\/?>\s*<br\s*\/?>/gi, '<br>') // Убираем двойные переносы
+    .replace(/\n\s*\n/g, '\n') // Убираем лишние переносы строк
+    .trim();
+  
+  return cleanHtml;
 };
 
 // Функции для работы с реакциями
