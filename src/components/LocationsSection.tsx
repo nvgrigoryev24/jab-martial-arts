@@ -2,102 +2,59 @@
 
 import React, { useState, useEffect } from 'react';
 import { Location, getLocations, getImageUrl } from '@/lib/pocketbase';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 const LocationsSection: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'локации',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
+
+  const loadLocations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getLocations();
+      
+      if (data.length > 0) {
+        console.log('Locations loaded from PocketBase:', data.length, 'records');
+        setLocations(data);
+        hideMaintenance();
+      } else {
+        console.log('No active locations found in PocketBase');
+        showMaintenance();
+      }
+    } catch (err) {
+      console.error('Error fetching locations:', err);
+      setError('Ошибка загрузки данных');
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const abortController = new AbortController();
-    
-    const fetchLocations = async () => {
-      try {
-        setLoading(true);
-        const data = await getLocations(abortController.signal);
-
-        // Если данные загружены из PocketBase, используем их
-        if (data.length > 0) {
-          console.log('Locations loaded from PocketBase:', data.length, 'records');
-          setLocations(data);
-        } else {
-          console.log('No active locations found in PocketBase, using mock data');
-          const mockData: Location[] = [
-            {
-              id: '1',
-              name: 'Центральный зал',
-              address: 'ул. Красная, 15, Москва',
-              description: 'Главный зал школы JAB с профессиональным оборудованием и просторной зоной для тренировок',
-              facilities: 'Профессиональный ринг, Тренажерный зал, Раздевалки, Душевые, Парковка',
-              photo: 'mock-location-1.jpg',
-              button_text: 'Записаться',
-              overlay_opacity: 20,
-              is_active: true,
-              sort_order: 1,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '2',
-              name: 'Зал "Сопка"',
-              address: 'пр. Мира, 88, Москва',
-              description: 'Современный зал в северной части города с новейшим оборудованием для всех видов единоборств',
-              facilities: 'Кикбоксинг ринг, Зал для ММА, Кардио зона, Раздевалки, Душевые',
-              photo: 'sopka.webp',
-              button_text: 'Выбрать зал',
-              overlay_opacity: 30,
-              is_active: true,
-              sort_order: 2,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '3',
-              name: 'Зал "Локомотив"',
-              address: 'ул. Ленина, 42, Москва',
-              description: 'Исторический зал в здании бывшего депо с уникальной атмосферой и профессиональным оборудованием',
-              facilities: 'Боксерский ринг, Зал для дзюдо, Кардио зона, Раздевалки, Душевые',
-              photo: 'loco.jpg',
-              button_text: 'Забронировать',
-              overlay_opacity: 25,
-              is_active: true,
-              sort_order: 3,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '4',
-              name: 'Зал "Юг"',
-              address: 'ул. Южная, 15, Москва',
-              description: 'Уютный зал в южном районе с семейной атмосферой и индивидуальным подходом к каждому ученику',
-              facilities: 'Боксерский ринг, Детская зона, Раздевалки, Душевые, Кафе',
-              photo: 'mock-location-4.jpg',
-              button_text: 'Записаться',
-              overlay_opacity: 15,
-              is_active: true,
-              sort_order: 4,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            }
-          ];
-          setLocations(mockData);
-        }
-      } catch (err) {
-        console.error('Error fetching locations:', err);
-        setError('Ошибка загрузки данных');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLocations();
-    
-    return () => {
-      abortController.abort();
-    };
+    loadLocations();
   }, []);
 
-  if (loading) {
+  const handleRetry = () => {
+    retry(loadLocations);
+  };
+
+  if (loading && !isUnderMaintenance) {
     return (
       <section id="locations" className="py-20 relative">
         <div className="container mx-auto px-4">
@@ -117,12 +74,23 @@ const LocationsSection: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (isUnderMaintenance) {
     return (
       <section id="locations" className="py-20 relative">
-        <div className="container mx-auto px-4 text-center">
-          <div className="text-red-500 text-xl mb-4">⚠️ {error}</div>
-          <p className="text-gray-400">Попробуйте обновить страницу</p>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="hero-jab-title text-4xl sm:text-5xl md:text-7xl text-white mb-6 sm:mb-8">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-600">
+                НАШИ ЗАЛЫ
+              </span>
+            </h2>
+          </div>
+          <UnderMaintenance 
+            sectionName="локации"
+            message={`Информация о залах временно недоступна. Попытка ${retryCount + 1} из 3.`}
+            showRetry={canRetry}
+            onRetry={handleRetry}
+          />
         </div>
       </section>
     );

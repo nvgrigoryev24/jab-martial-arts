@@ -31,8 +31,13 @@ export interface Location {
   overlay_opacity?: number;        // Прозрачность оверлея (0-100)
   is_active: boolean;              // Активный зал
   sort_order: number;              // Порядок показа
+  color_theme?: string;            // ID цветовой схемы (relation)
   created: string;
   updated: string;
+  // Расширенные данные (заполняются при загрузке)
+  expand?: {
+    color_theme?: ColorTheme;
+  };
 }
 
 export interface HeroContent {
@@ -320,6 +325,75 @@ export interface HallOfFame {
   created: string;
   updated: string;
 }
+
+export interface NavigationLink {
+  id: string;
+  title: string;              // Название ссылки
+  href: string;               // URL ссылки
+  sort_order: number;         // Порядок отображения
+  is_active: boolean;         // Активна ли ссылка
+  created: string;
+  updated: string;
+}
+
+export interface HeaderContent {
+  id: string;
+  logo_url?: string;          // Изображение логотипа
+  logo_alt: string;           // Альтернативный текст логотипа
+  cta_button_text: string;    // Текст кнопки записи
+  cta_button_href: string;    // Ссылка кнопки записи
+  mobile_title: string;       // Заголовок для мобильного меню
+  is_active: boolean;         // Активен ли контент
+  created: string;
+  updated: string;
+}
+
+export interface SocialLink {
+  id: string;
+  title: string;              // Название социальной сети
+  icon: string;               // Иконка (файл изображения)
+  href: string;               // URL ссылки на социальную сеть
+  sort_order: number;         // Порядок отображения
+  is_active: boolean;         // Активна ли ссылка
+  created: string;
+  updated: string;
+}
+
+// Интерфейсы для футера
+export interface FooterContent {
+  id: string;
+  title: string;              // Название школы
+  description: string;        // Описание школы
+  logo_url?: string;          // Логотип школы (файл)
+  copyright_text: string;     // Текст копирайта
+  is_active: boolean;         // Активен ли контент
+  created: string;
+  updated: string;
+}
+
+export interface FooterLink {
+  id: string;
+  title: string;              // Название ссылки
+  href: string;               // URL ссылки
+  section: 'navigation' | 'legal' | 'support'; // Секция футера
+  sort_order: number;         // Порядок отображения
+  is_active: boolean;         // Активна ли ссылка
+  created: string;
+  updated: string;
+}
+
+export interface FooterContact {
+  id: string;
+  type: 'phone' | 'email' | 'address' | 'schedule'; // Тип контакта
+  label: string;              // Название контакта
+  value: string;              // Значение контакта
+  icon: string;               // Эмодзи иконка
+  sort_order: number;         // Порядок отображения
+  is_active: boolean;         // Активен ли контакт
+  created: string;
+  updated: string;
+}
+
 
 // Функции для работы с данными
 export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
@@ -1065,4 +1139,129 @@ export const getPreloaderSettings = async (signal?: AbortSignal): Promise<Preloa
     return null;
   }
 };
+
+// Функции для работы с Header
+export const getNavigationLinks = async (signal?: AbortSignal): Promise<NavigationLink[]> => {
+  try {
+    const records = await pb.collection('navigation_links').getFullList<NavigationLink>({
+      filter: 'is_active = true',
+      sort: 'sort_order'
+    });
+    return records;
+  } catch (error: any) {
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Navigation links collection not found, using default data');
+      return [];
+    }
+    console.error('Error fetching navigation links:', error);
+    return [];
+  }
+};
+
+export const getHeaderContent = async (signal?: AbortSignal): Promise<HeaderContent | null> => {
+  try {
+    const records = await pb.collection('header_content').getFullList<HeaderContent>({
+      filter: 'is_active = true',
+      sort: 'created',
+      limit: 1
+    });
+    return records.length > 0 ? records[0] : null;
+  } catch (error: any) {
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return null;
+    }
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Header content collection not found, using default data');
+      return null;
+    }
+    console.error('Error fetching header content:', error);
+    return null;
+  }
+};
+
+export const getSocialLinks = async (signal?: AbortSignal): Promise<SocialLink[]> => {
+  try {
+    const records = await pb.collection('social_links').getFullList<SocialLink>({
+      filter: 'is_active = true',
+      sort: 'sort_order'
+    });
+    return records;
+  } catch (error: any) {
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Social links collection not found, using default data');
+      return [];
+    }
+    console.error('Error fetching social links:', error);
+    return [];
+  }
+};
+
+// Функции для работы с данными футера
+export const getFooterContent = async (signal?: AbortSignal): Promise<FooterContent | null> => {
+  try {
+    const records = await pb.collection('footer_content').getFullList<FooterContent>({
+      filter: 'is_active = true',
+      sort: 'created',
+      limit: 1
+    });
+    return records.length > 0 ? records[0] : null;
+  } catch (error: any) {
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return null;
+    }
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Footer content collection not found, using default data');
+      return null;
+    }
+    console.error('Error fetching footer content:', error);
+    return null;
+  }
+};
+
+export const getFooterLinks = async (signal?: AbortSignal): Promise<FooterLink[]> => {
+  try {
+    const records = await pb.collection('footer_links').getFullList<FooterLink>({
+      filter: 'is_active = true',
+      sort: 'sort_order'
+    });
+    return records;
+  } catch (error: any) {
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Footer links collection not found, using default data');
+      return [];
+    }
+    console.error('Error fetching footer links:', error);
+    return [];
+  }
+};
+
+export const getFooterContacts = async (signal?: AbortSignal): Promise<FooterContact[]> => {
+  try {
+    const records = await pb.collection('footer_contacts').getFullList<FooterContact>({
+      filter: 'is_active = true',
+      sort: 'sort_order'
+    });
+    return records;
+  } catch (error: any) {
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Footer contacts collection not found, using default data');
+      return [];
+    }
+    console.error('Error fetching footer contacts:', error);
+    return [];
+  }
+};
+
 

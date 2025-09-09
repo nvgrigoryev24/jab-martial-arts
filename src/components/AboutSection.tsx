@@ -2,44 +2,91 @@
 
 import { useEffect, useState } from 'react';
 import { getAboutPage, getAboutCards, AboutPage, AboutCard, getImageUrl, getColorThemeStyles, sanitizeHtmlForDisplay } from '@/lib/pocketbase';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 export default function AboutSection() {
   const [aboutPage, setAboutPage] = useState<AboutPage | null>(null);
   const [aboutCards, setAboutCards] = useState<AboutCard[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'о школе',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
 
-  useEffect(() => {
-    const loadAboutData = async () => {
-      try {
-        const [pageData, cardsData] = await Promise.all([
-          getAboutPage(),
-          getAboutCards()
-        ]);
+  const loadAboutData = async () => {
+    try {
+      setLoading(true);
+      const [pageData, cardsData] = await Promise.all([
+        getAboutPage(),
+        getAboutCards()
+      ]);
+      
+      if (pageData && cardsData.length > 0) {
+        console.log('About data loaded from PocketBase:', cardsData.length, 'cards');
         setAboutPage(pageData);
         setAboutCards(cardsData);
-      } catch (error) {
-        console.error('Ошибка загрузки данных About секции:', error);
-      } finally {
-        setLoading(false);
+        hideMaintenance();
+      } else {
+        console.log('No about data found in PocketBase');
+        showMaintenance();
       }
-    };
+    } catch (error) {
+      console.error('Ошибка загрузки данных About секции:', error);
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadAboutData();
   }, []);
 
-  // Fallback значения если данные не загружены
-  const sectionTitle = aboutPage?.section_title || 'О ШКОЛЕ JAB';
-  const sectionSubtitle = aboutPage?.section_subtitle || 'МЫ СОЗДАЕМ ПРОСТРАНСТВО, ГДЕ КАЖДЫЙ МОЖЕТ РАСКРЫТЬ СВОЙ ПОТЕНЦИАЛ И ДОСТИЧЬ НОВЫХ ВЫСОТ В ЕДИНОБОРСТВАХ';
-  const bottomBannerText = aboutPage?.bottom_banner_text || 'ПЕРВАЯ ТРЕНИРОВКА БЕСПЛАТНО';
+  const handleRetry = () => {
+    retry(loadAboutData);
+  };
 
-  // Показываем загрузку если данные еще не загружены
-  if (loading) {
+  if (loading && !isUnderMaintenance) {
     return (
       <section id="about" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto text-center">
             <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-400">Загрузка...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (isUnderMaintenance) {
+    return (
+      <section id="about" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto text-center">
+            <div className="text-center mb-16">
+              <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                  О ШКОЛЕ JAB
+                </span>
+              </h2>
+            </div>
+            <UnderMaintenance 
+              sectionName="о школе"
+              message={`Информация о школе временно недоступна. Попытка ${retryCount + 1} из 3.`}
+              showRetry={canRetry}
+              onRetry={handleRetry}
+            />
           </div>
         </div>
       </section>
@@ -67,11 +114,11 @@ export default function AboutSection() {
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
-                {sectionTitle}
+                {aboutPage?.section_title || 'О ШКОЛЕ JAB'}
               </span>
             </h2>
             <p className="hero-jab-text text-lg sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed px-4">
-              {sectionSubtitle}
+              {aboutPage?.section_subtitle || 'МЫ СОЗДАЕМ ПРОСТРАНСТВО, ГДЕ КАЖДЫЙ МОЖЕТ РАСКРЫТЬ СВОЙ ПОТЕНЦИАЛ И ДОСТИЧЬ НОВЫХ ВЫСОТ В ЕДИНОБОРСТВАХ'}
             </p>
           </div>
 
@@ -152,7 +199,7 @@ export default function AboutSection() {
             <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-full px-6 py-3">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
               <span className="hero-jab-text text-red-400 font-semibold">
-                {bottomBannerText}
+                {aboutPage?.bottom_banner_text || 'ПЕРВАЯ ТРЕНИРОВКА БЕСПЛАТНО'}
               </span>
             </div>
           </div>

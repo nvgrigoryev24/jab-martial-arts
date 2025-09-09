@@ -8,166 +8,59 @@ import {
   getStatusIcon, 
   sanitizeHtmlForDisplay 
 } from '@/lib/pocketbase';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 const HallOfFameSection: React.FC = () => {
   const [athletes, setAthletes] = useState<HallOfFame[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'зал славы',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
+
+  const loadAthletes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getHallOfFame();
+      
+      if (data.length > 0) {
+        console.log('Hall of fame loaded from PocketBase:', data.length, 'records');
+        setAthletes(data);
+        hideMaintenance();
+      } else {
+        console.log('No hall of fame data found in PocketBase');
+        showMaintenance();
+      }
+    } catch (err) {
+      console.error('Error fetching hall of fame:', err);
+      setError('Ошибка загрузки данных');
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAthletes = async () => {
-      try {
-        setLoading(true);
-        const data = await getHallOfFame();
-        
-        // Если данных нет, используем моковые данные для демонстрации
-        if (data.length === 0) {
-          const mockData: HallOfFame[] = [
-            {
-              id: '1',
-              athlete_name: 'Александр Петров',
-              sport_type: 'Бокс',
-              achievements: '<p><strong>Чемпион России по боксу 2023</strong></p><p>Серебряный призер чемпионата мира 2022</p><p>Бронзовый призер Олимпийских игр 2021</p><p>Мастер спорта международного класса</p>',
-              photo: 'mock-photo-1.jpg',
-              rank: 1,
-              years_active: '2018-настоящее время',
-              current_status: 'Активный',
-              special_mention: 'Непревзойденный боец с техникой мирового уровня',
-              is_featured: true,
-              is_active: true,
-              sort_order: 1,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '2',
-              athlete_name: 'Мария Сидорова',
-              sport_type: 'Кикбоксинг',
-              achievements: '<p><strong>Чемпионка Европы по кикбоксингу 2023</strong></p><p>Золотая медаль на чемпионате мира 2022</p><p>Чемпионка России 2021-2023</p><p>Мастер спорта России</p>',
-              photo: 'mock-photo-2.jpg',
-              rank: 2,
-              years_active: '2019-настоящее время',
-              current_status: 'Активный',
-              special_mention: 'Королева кикбоксинга с невероятной скоростью',
-              is_featured: true,
-              is_active: true,
-              sort_order: 2,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '3',
-              athlete_name: 'Дмитрий Волков',
-              sport_type: 'Смешанные единоборства',
-              achievements: '<p><strong>Чемпион России по ММА 2022</strong></p><p>Победитель турнира "Битва чемпионов" 2023</p><p>Мастер спорта по самбо</p><p>Кандидат в мастера спорта по боксу</p>',
-              photo: 'mock-photo-3.jpg',
-              rank: 3,
-              years_active: '2017-2024',
-              current_status: 'Тренер',
-              special_mention: 'Универсальный боец с железной волей',
-              is_featured: false,
-              is_active: true,
-              sort_order: 3,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '4',
-              athlete_name: 'Анна Козлова',
-              sport_type: 'Бокс',
-              achievements: '<p><strong>Чемпионка России по боксу 2021-2022</strong></p><p>Серебряный призер чемпионата Европы 2021</p><p>Мастер спорта России</p><p>Победительница 15 профессиональных боев</p>',
-              photo: 'mock-photo-4.jpg',
-              rank: 4,
-              years_active: '2016-2023',
-              current_status: 'Завершил карьеру',
-              special_mention: 'Легенда женского бокса',
-              is_featured: false,
-              is_active: true,
-              sort_order: 4,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '5',
-              athlete_name: 'Сергей Морозов',
-              sport_type: 'Кикбоксинг',
-              achievements: '<p><strong>Чемпион мира по кикбоксингу 2020</strong></p><p>Золотая медаль на чемпионате Европы 2019</p><p>Мастер спорта международного класса</p><p>Тренер сборной России</p>',
-              photo: 'mock-photo-5.jpg',
-              rank: 5,
-              years_active: '2015-настоящее время',
-              current_status: 'Тренер',
-              special_mention: 'Мудрый наставник и великий боец',
-              is_featured: false,
-              is_active: true,
-              sort_order: 5,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '6',
-              athlete_name: 'Елена Новикова',
-              sport_type: 'Бокс',
-              achievements: '<p><strong>Чемпионка России по боксу 2020</strong></p><p>Бронзовая медаль на чемпионате мира 2019</p><p>Мастер спорта России</p><p>Победительница 12 профессиональных боев</p>',
-              photo: 'mock-photo-6.jpg',
-              rank: 6,
-              years_active: '2018-2022',
-              current_status: 'Завершил карьеру',
-              special_mention: 'Техничный боец с безупречной защитой',
-              is_featured: false,
-              is_active: true,
-              sort_order: 6,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '7',
-              athlete_name: 'Андрей Соколов',
-              sport_type: 'Смешанные единоборства',
-              achievements: '<p><strong>Чемпион России по ММА 2021</strong></p><p>Победитель турнира "Сибирский тигр" 2022</p><p>Мастер спорта по дзюдо</p><p>Кандидат в мастера спорта по кикбоксингу</p>',
-              photo: 'mock-photo-7.jpg',
-              rank: 7,
-              years_active: '2019-настоящее время',
-              current_status: 'Активный',
-              special_mention: 'Молодой талант с большим потенциалом',
-              is_featured: false,
-              is_active: true,
-              sort_order: 7,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            },
-            {
-              id: '8',
-              athlete_name: 'Ольга Белова',
-              sport_type: 'Кикбоксинг',
-              achievements: '<p><strong>Чемпионка России по кикбоксингу 2022</strong></p><p>Серебряная медаль на чемпионате Европы 2023</p><p>Мастер спорта России</p><p>Победительница 8 профессиональных боев</p>',
-              photo: 'mock-photo-8.jpg',
-              rank: 8,
-              years_active: '2020-настоящее время',
-              current_status: 'Активный',
-              special_mention: 'Быстрая и точная, как молния',
-              is_featured: false,
-              is_active: true,
-              sort_order: 8,
-              created: '2025-01-15T00:00:00Z',
-              updated: '2025-01-15T00:00:00Z'
-            }
-          ];
-          setAthletes(mockData);
-        } else {
-          setAthletes(data);
-        }
-      } catch (err) {
-        console.error('Error fetching hall of fame:', err);
-        setError('Ошибка загрузки данных');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAthletes();
+    loadAthletes();
   }, []);
 
-  if (loading) {
+  const handleRetry = () => {
+    retry(loadAthletes);
+  };
+
+  if (loading && !isUnderMaintenance) {
     return (
       <section className="py-20 relative">
         <div className="container mx-auto px-4">
@@ -194,29 +87,23 @@ const HallOfFameSection: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (isUnderMaintenance) {
     return (
       <section className="py-20 relative">
-        <div className="container mx-auto px-4 text-center">
-          <div className="text-red-500 text-xl mb-4">⚠️ {error}</div>
-          <p className="text-gray-400">Попробуйте обновить страницу</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (athletes.length === 0) {
-    return (
-      <section className="py-20 relative">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
-              ЗАЛ СЛАВЫ
-            </span>
-          </h2>
-          <p className="text-gray-400 text-lg">
-            Скоро здесь появятся наши чемпионы!
-          </p>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                ЗАЛ СЛАВЫ
+              </span>
+            </h2>
+          </div>
+          <UnderMaintenance 
+            sectionName="зал славы"
+            message={`Информация о спортсменах временно недоступна. Попытка ${retryCount + 1} из 3.`}
+            showRetry={canRetry}
+            onRetry={handleRetry}
+          />
         </div>
       </section>
     );

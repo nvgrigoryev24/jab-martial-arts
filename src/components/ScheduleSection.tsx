@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { getSchedule, Schedule, formatTimeRange, getDuration, formatDuration, sortScheduleByTime, getLocationName, getCoachesNames, hasMultipleCoaches, getColorThemes, ColorTheme, getColorThemeBySlug, formatColorTheme, getColorThemeStyles, getDefaultLocationColor, getDefaultLevelColor, getTrainingLevels, TrainingLevel, getLevelName, getLevelColorStyles, getLocations, Location } from '@/lib/pocketbase';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 export default function ScheduleSection() {
   const [schedule, setSchedule] = useState<Schedule[]>([]);
@@ -19,6 +21,19 @@ export default function ScheduleSection() {
   // Состояние для мобильного аккордеона
   const [openDays, setOpenDays] = useState<string[]>([]);
   
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'расписание',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
+  
 
   // Функция для сброса всех фильтров
   const resetAllFilters = () => {
@@ -33,51 +48,44 @@ export default function ScheduleSection() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  useEffect(() => {
-    let isCancelled = false;
-    
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        
-        // Загружаем расписание, цветовые схемы, уровни подготовки и локации параллельно
-        const [scheduleData, themesData, levelsData, locationsData] = await Promise.all([
-          getSchedule(),
-          getColorThemes(),
-          getTrainingLevels(),
-          getLocations()
-        ]);
-        
-        // Проверяем, что компонент еще смонтирован
-        if (!isCancelled) {
-          setSchedule(scheduleData);
-          setColorThemes(themesData);
-          setTrainingLevels(levelsData);
-          setAllLocations(locationsData);
-        }
-      } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
-        // В случае ошибки используем пустые массивы только если компонент еще смонтирован
-        if (!isCancelled) {
-          setSchedule([]);
-          setColorThemes([]);
-          setTrainingLevels([]);
-          setAllLocations([]);
-        }
-      } finally {
-        if (!isCancelled) {
-          setLoading(false);
-        }
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Загружаем расписание, цветовые схемы, уровни подготовки и локации параллельно
+      const [scheduleData, themesData, levelsData, locationsData] = await Promise.all([
+        getSchedule(),
+        getColorThemes(),
+        getTrainingLevels(),
+        getLocations()
+      ]);
+      
+      if (scheduleData.length > 0) {
+        console.log('Schedule data loaded from PocketBase:', scheduleData.length, 'records');
+        setSchedule(scheduleData);
+        setColorThemes(themesData);
+        setTrainingLevels(levelsData);
+        setAllLocations(locationsData);
+        hideMaintenance();
+      } else {
+        console.log('No schedule data found in PocketBase');
+        showMaintenance();
       }
-    };
+    } catch (error) {
+      console.error('Ошибка загрузки данных:', error);
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadData();
-    
-    // Cleanup функция для отмены запроса при размонтировании
-    return () => {
-      isCancelled = true;
-    };
   }, []);
+
+  const handleRetry = () => {
+    retry(loadData);
+  };
 
   // Обработчик события фильтрации по локации
   useEffect(() => {
@@ -249,7 +257,46 @@ export default function ScheduleSection() {
     };
   };
 
+  if (loading && !isUnderMaintenance) {
+    return (
+      <section id="schedule" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                РАСПИСАНИЕ
+              </span>
+            </h2>
+          </div>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
+  if (isUnderMaintenance) {
+    return (
+      <section id="schedule" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                РАСПИСАНИЕ
+              </span>
+            </h2>
+          </div>
+          <UnderMaintenance 
+            sectionName="расписание"
+            message={`Информация о расписании временно недоступна. Попытка ${retryCount + 1} из 3.`}
+            showRetry={canRetry}
+            onRetry={handleRetry}
+          />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="schedule" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">

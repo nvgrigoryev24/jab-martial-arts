@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { getNews, News, NewsCategory, NewsAuthor, NewsReaction, getImageUrl, stripHtmlTags, updateNewsReaction, transparencyToHex } from '@/lib/pocketbase';
 import NewsModal from './NewsModal';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 const categories = [
   { id: 'all', name: 'Все новости' },
@@ -23,11 +25,27 @@ export default function NewsSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
   const [currentNewsIndex, setCurrentNewsIndex] = useState<number>(0);
+  
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'новости',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
 
-  useEffect(() => {
-    const loadNews = async () => {
-      try {
-        const news = await getNews();
+  const loadNews = async () => {
+    try {
+      setLoading(true);
+      const news = await getNews();
+      
+      if (news.length > 0) {
+        console.log('News loaded from PocketBase:', news.length, 'records');
         setNewsData(news);
         
         // Инициализируем счетчики реакций из PocketBase
@@ -36,15 +54,26 @@ export default function NewsSection() {
           initialCounts[newsItem.id] = newsItem.reaction_counts || {};
         });
         setReactionCounts(initialCounts);
-      } catch (error) {
-        setNewsData([]);
-      } finally {
-        setLoading(false);
+        hideMaintenance();
+      } else {
+        console.log('No news found in PocketBase');
+        showMaintenance();
       }
-    };
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadNews();
   }, []);
+
+  const handleRetry = () => {
+    retry(loadNews);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -258,6 +287,47 @@ export default function NewsSection() {
     setSelectedNewsId(null);
     setCurrentNewsIndex(0);
   };
+
+  if (loading && !isUnderMaintenance) {
+    return (
+      <section id="news" className="py-12 sm:py-16 md:py-20 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                НОВОСТИ
+              </span>
+            </h2>
+          </div>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (isUnderMaintenance) {
+    return (
+      <section id="news" className="py-12 sm:py-16 md:py-20 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                НОВОСТИ
+              </span>
+            </h2>
+          </div>
+          <UnderMaintenance 
+            sectionName="новости"
+            message={`Информация о новостях временно недоступна. Попытка ${retryCount + 1} из 3.`}
+            showRetry={canRetry}
+            onRetry={handleRetry}
+          />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="news" className="py-12 sm:py-16 md:py-20 relative overflow-hidden">

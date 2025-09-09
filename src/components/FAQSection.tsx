@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { getFAQCategories, getFAQs, FAQ, FAQCategory } from '@/lib/pocketbase';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 export default function FAQSection() {
   const [openItems, setOpenItems] = useState<string[]>([]);
@@ -9,129 +11,66 @@ export default function FAQSection() {
   const [faqCategories, setFaqCategories] = useState<FAQCategory[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'часто задаваемые вопросы',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
 
-  // Загрузка данных FAQ из PocketBase
-  useEffect(() => {
-    const abortController = new AbortController();
-    
-    const fetchFAQData = async () => {
-      try {
-        const [categoriesData, faqsData] = await Promise.all([
-          getFAQCategories(abortController.signal),
-          getFAQs(abortController.signal)
-        ]);
-        
+  const loadFAQData = async () => {
+    try {
+      setLoading(true);
+      const [categoriesData, faqsData] = await Promise.all([
+        getFAQCategories(),
+        getFAQs()
+      ]);
+      
+      if (categoriesData.length > 0 && faqsData.length > 0) {
+        console.log('FAQ data loaded from PocketBase:', categoriesData.length, 'categories,', faqsData.length, 'faqs');
         setFaqCategories(categoriesData);
         setFaqs(faqsData);
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
-          console.error('Error fetching FAQ data:', error);
-        }
-      } finally {
-        setLoading(false);
+        hideMaintenance();
+      } else {
+        console.log('No FAQ data found in PocketBase');
+        showMaintenance();
       }
-    };
+    } catch (error: any) {
+      console.error('Error fetching FAQ data:', error);
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchFAQData();
-
-    return () => {
-      abortController.abort();
-    };
+  useEffect(() => {
+    loadFAQData();
   }, []);
 
-  // Fallback данные если PocketBase не работает
-  const fallbackFAQs: FAQ[] = [
-    {
-      id: 'fallback-1',
-      question: 'Сколько стоит первая тренировка?',
-      answer: 'Первая тренировка в нашей школе абсолютно бесплатна!',
-      faq_category: 'fallback-pricing',
-      is_active: true,
-      sort_order: 1,
-      created: new Date().toISOString(),
-      updated: new Date().toISOString()
-    },
-    {
-      id: 'fallback-2',
-      question: 'В каких залах проходят тренировки?',
-      answer: 'У нас есть два спортивных зала: "Локомотив" и "Сопка".',
-      faq_category: 'fallback-training',
-      is_active: true,
-      sort_order: 2,
-      created: new Date().toISOString(),
-      updated: new Date().toISOString()
-    }
-  ];
+  const handleRetry = () => {
+    retry(loadFAQData);
+  };
 
-  const fallbackCategories: FAQCategory[] = [
-    {
-      id: 'fallback-pricing',
-      name: 'Цены и оплата',
-      slug: 'pricing',
-      description: 'Вопросы о стоимости',
-      color_theme: 'red',
-      is_active: true,
-      sort_order: 1,
-      created: new Date().toISOString(),
-      updated: new Date().toISOString(),
-      expand: {
-        color_theme: { 
-          id: 'red-theme',
-          name: 'red',
-          bg_color: '#ef4444',
-          color: '#fca5a5',
-          border_color: '#dc2626',
-          transparency: 20,
-          is_active: true,
-          sort_order: 1,
-          created: new Date().toISOString(),
-          updated: new Date().toISOString()
-        }
-      }
-    },
-    {
-      id: 'fallback-training',
-      name: 'Тренировки',
-      slug: 'training',
-      description: 'Вопросы о тренировках',
-      color_theme: 'blue',
-      is_active: true,
-      sort_order: 2,
-      created: new Date().toISOString(),
-      updated: new Date().toISOString(),
-      expand: {
-        color_theme: { 
-          id: 'blue-theme',
-          name: 'blue',
-          bg_color: '#3b82f6',
-          color: '#93c5fd',
-          border_color: '#2563eb',
-          transparency: 20,
-          is_active: true,
-          sort_order: 2,
-          created: new Date().toISOString(),
-          updated: new Date().toISOString()
-        }
-      }
-    }
-  ];
-
-  // Используем fallback данные если нет данных из PocketBase
-  const displayFAQs = faqs.length > 0 ? faqs : fallbackFAQs;
-  const displayCategories = faqCategories.length > 0 ? faqCategories : fallbackCategories;
 
   // Создаем категории для фильтрации (включая "Все вопросы")
   const categories = [
     { id: 'all', name: 'Все вопросы' },
-    ...displayCategories.map(category => ({
+    ...faqCategories.map(category => ({
       id: category.id,
       name: category.name
     }))
   ];
 
   const filteredFAQ = selectedCategory === 'all' 
-    ? displayFAQs 
-    : displayFAQs.filter(item => item.faq_category === selectedCategory);
+    ? faqs 
+    : faqs.filter(item => item.faq_category === selectedCategory);
 
   const toggleItem = (id: string) => {
     setOpenItems(prev => {
@@ -186,13 +125,13 @@ export default function FAQSection() {
     if (faq.expand?.faq_category) {
       return faq.expand.faq_category.name;
     }
-    // Fallback к displayCategories
-    const category = displayCategories.find(cat => cat.id === faq.faq_category);
+    // Fallback к faqCategories
+    const category = faqCategories.find(cat => cat.id === faq.faq_category);
     return category?.name || 'Без категории';
   };
 
   // Показываем индикатор загрузки только если данные еще загружаются
-  if (loading && faqs.length === 0) {
+  if (loading && !isUnderMaintenance) {
     return (
       <section id="faq" className="relative py-20 text-white overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
@@ -200,6 +139,30 @@ export default function FAQSection() {
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
             </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (isUnderMaintenance) {
+    return (
+      <section id="faq" className="relative py-20 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                  ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ
+                </span>
+              </h2>
+            </div>
+            <UnderMaintenance 
+              sectionName="часто задаваемые вопросы"
+              message={`Информация о вопросах и ответах временно недоступна. Попытка ${retryCount + 1} из 3.`}
+              showRetry={canRetry}
+              onRetry={handleRetry}
+            />
           </div>
         </div>
       </section>

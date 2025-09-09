@@ -3,50 +3,85 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getHeroContent, HeroContent, getImageUrl } from '@/lib/pocketbase';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 export default function HeroSection() {
   const [isRevealed, setIsRevealed] = useState(true); // Сразу показываем без анимации
   const [heroContent, setHeroContent] = useState<HeroContent | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'главная секция',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
+
+  const loadHeroContent = async () => {
+    try {
+      setLoading(true);
+      const content = await getHeroContent();
+      
+      if (content) {
+        console.log('Hero content loaded from PocketBase');
+        setHeroContent(content);
+        hideMaintenance();
+      } else {
+        console.log('No hero content found in PocketBase');
+        showMaintenance();
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки Hero контента:', error);
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadHeroContent = async () => {
-      try {
-        const content = await getHeroContent();
-        setHeroContent(content);
-      } catch (error) {
-        console.error('Ошибка загрузки Hero контента:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadHeroContent();
   }, []);
 
-  // Fallback значения если данные не загружены
-  const eyebrowText = heroContent?.eyebrow_text || 'БОКС И КИКБОКСИНГ';
-  const title = heroContent?.title || 'ШКОЛА ЕДИНОБОРСТВ JAB';
-  const description = heroContent?.description || 'Группы по уровню. Первая тренировка - бесплатно';
-  const ctaText = heroContent?.cta_text || 'Записаться';
-  const ctaLink = heroContent?.cta_link || '#contact';
-  const feature1Text = heroContent?.feature_1_text || 'Первая тренировка бесплатно';
-  const feature2Text = heroContent?.feature_2_text || 'Группы по уровню';
+  const handleRetry = () => {
+    retry(loadHeroContent);
+  };
+  
+  const imageAlt = heroContent?.image_alt || 'Тренировочный зал JAB';
   // Правильно формируем URL изображения
   const imageUrl = heroContent?.image_url 
     ? heroContent.image_url.startsWith('http') 
       ? heroContent.image_url 
       : getImageUrl(heroContent, heroContent.image_url)
     : null;
-  const imageAlt = heroContent?.image_alt || 'Тренировочный зал JAB';
 
-  // Показываем загрузку если данные еще не загружены
-  if (loading) {
+  if (loading && !isUnderMaintenance) {
     return (
       <section id="hero" className="relative min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-400">Загрузка...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (isUnderMaintenance) {
+    return (
+      <section id="hero" className="relative min-h-screen flex items-center justify-center">
+        <div className="container mx-auto px-4 text-center">
+          <UnderMaintenance 
+            sectionName="главная секция"
+            message={`Главная секция временно недоступна. Попытка ${retryCount + 1} из 3.`}
+            showRetry={canRetry}
+            onRetry={handleRetry}
+          />
         </div>
       </section>
     );
@@ -75,29 +110,29 @@ export default function HeroSection() {
           <div className="inline-flex items-center gap-2 justify-center md:justify-start" data-reveal>
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
             <span className="hero-jab-eyebrow inline-block rounded-full border border-red-500/30 bg-red-500/10 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-400 backdrop-blur-sm">
-              {eyebrowText}
+              {heroContent?.eyebrow_text || 'БОКС И КИКБОКСИНГ'}
             </span>
           </div>
           
           {/* Заголовок */}
           <h1 className="hero-jab-title text-3xl sm:text-4xl md:text-5xl lg:text-7xl tracking-tight text-white leading-tight" data-reveal>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
-              {title}
+              {heroContent?.title || 'ШКОЛА ЕДИНОБОРСТВ JAB'}
             </span>
           </h1>
           
           {/* Описание */}
           <p className="hero-jab-text text-lg sm:text-xl md:text-2xl text-gray-300 leading-relaxed max-w-2xl mx-auto md:mx-0" data-reveal>
-            {description}
+            {heroContent?.description || 'Группы по уровню. Первая тренировка - бесплатно'}
           </p>
           
           {/* Кнопка */}
           <div className="pt-2 sm:pt-4" data-reveal>
             <Link
-              href={ctaLink}
+              href={heroContent?.cta_link || '#contact'}
               className="relative px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hero-jab-text text-center cursor-glove bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-red-500/25 hover:from-red-700 hover:to-red-800 inline-block w-full sm:w-auto"
             >
-              <span className="relative z-10">{ctaText}</span>
+              <span className="relative z-10">{heroContent?.cta_text || 'Записаться'}</span>
               <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
             </Link>
           </div>
@@ -106,11 +141,11 @@ export default function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 pt-6 sm:pt-8" data-reveal>
             <div className="flex items-center justify-center md:justify-start gap-2">
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full animate-ping"></div>
-              <span className="hero-jab-text text-gray-400 text-xs sm:text-sm text-center md:text-left">{feature1Text}</span>
+              <span className="hero-jab-text text-gray-400 text-xs sm:text-sm text-center md:text-left">{heroContent?.feature_1_text || 'Первая тренировка бесплатно'}</span>
             </div>
             <div className="flex items-center justify-center md:justify-start gap-2">
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
-              <span className="hero-jab-text text-gray-400 text-xs sm:text-sm text-center md:text-left">{feature2Text}</span>
+              <span className="hero-jab-text text-gray-400 text-xs sm:text-sm text-center md:text-left">{heroContent?.feature_2_text || 'Группы по уровню'}</span>
             </div>
           </div>
         </div>

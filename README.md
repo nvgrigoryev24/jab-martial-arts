@@ -1,13 +1,40 @@
 # JAB Martial Arts - School Website
 
-**Version:** 1.12.0  
+**Version:** 1.13.0  
 **Last Updated:** January 15, 2025  
 **Status:** ✅ Production Ready  
 **Repository:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
 
 This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school website, featuring modern design, interactive elements, and comprehensive content management through PocketBase.
 
-## 🚀 Latest Updates (v1.12.0)
+## 🚀 Latest Updates (v1.13.0)
+
+### 🔧 Fallback Data Elimination & Maintenance System
+- **No More Fallback Data**: Completely removed all fallback/mock data from all sections
+- **Maintenance Mode**: New "Under Maintenance" component for sections without data
+- **Smart Retry System**: 3 retry attempts with 2-second delays for failed data loads
+- **Consistent UX**: All sections now follow "PocketBase data or maintenance" principle
+- **Enhanced Error Handling**: Graceful degradation when PocketBase is unavailable
+- **User-Friendly Messages**: Clear maintenance messages with retry options
+
+### 📱 Updated Sections
+- **LocationsSection**: Removed mock location data, added maintenance mode
+- **HallOfFameSection**: Removed mock athlete data, added maintenance mode  
+- **FAQSection**: Removed fallback questions, added maintenance mode
+- **TrainersSection**: Removed fallback trainer data, added maintenance mode
+- **NewsSection**: Removed fallback news data, added maintenance mode
+- **ScheduleSection**: Removed fallback schedule data, added maintenance mode
+- **AboutSection**: Removed fallback text values, added maintenance mode
+- **HeroSection**: Removed fallback text values, added maintenance mode
+
+### 🎨 Maintenance Component Features
+- **JAB Branding**: Consistent styling with JAB design system
+- **Retry Functionality**: Users can retry loading data with visual feedback
+- **Progress Tracking**: Shows current attempt number (e.g., "Попытка 2 из 3")
+- **Responsive Design**: Works perfectly on all device sizes
+- **Loading States**: Smooth transitions between loading and maintenance states
+
+## 🚀 Previous Updates (v1.12.0)
 
 ### 🎬 Enhanced Preloader System
 - **PocketBase Integration**: Full preloader management through PocketBase

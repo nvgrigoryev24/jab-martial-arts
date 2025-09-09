@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { getTrainers, Trainer, getImageUrl } from '@/lib/pocketbase';
 import TrainerModal from './TrainerModal';
+import UnderMaintenance from './UnderMaintenance';
+import { useUnderMaintenance } from '@/hooks/useUnderMaintenance';
 
 export default function TrainersSection() {
   const [trainers, setTrainers] = useState<Trainer[]>([]);
@@ -10,47 +12,48 @@ export default function TrainersSection() {
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isLoadingRef = useRef(false);
+  
+  const {
+    isUnderMaintenance,
+    retryCount,
+    canRetry,
+    showMaintenance,
+    hideMaintenance,
+    retry
+  } = useUnderMaintenance({ 
+    sectionName: 'тренеры',
+    maxRetries: 3,
+    retryDelay: 2000
+  });
+
+  const loadTrainers = async () => {
+    try {
+      setLoading(true);
+      const trainersData = await getTrainers();
+      
+      if (trainersData.length > 0) {
+        console.log('Trainers loaded from PocketBase:', trainersData.length, 'records');
+        setTrainers(trainersData);
+        hideMaintenance();
+      } else {
+        console.log('No trainers found in PocketBase');
+        showMaintenance();
+      }
+    } catch (error) {
+      console.error('Error fetching trainers:', error);
+      showMaintenance();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Предотвращаем двойное выполнение в режиме разработки
-    if (isLoadingRef.current) return;
-    
-    const abortController = new AbortController();
-    isLoadingRef.current = true;
-    
-    const loadTrainers = async () => {
-      try {
-        const trainersData = await getTrainers(abortController.signal);
-        
-        // Проверяем, не был ли компонент размонтирован
-        if (!abortController.signal.aborted) {
-          setTrainers(trainersData);
-        }
-      } catch (error) {
-        // Игнорируем ошибки отмены запроса
-        if (error.name === 'AbortError' || error.message?.includes('autocancelled')) {
-          return;
-        }
-        // Fallback to empty array if PocketBase is not available
-        if (!abortController.signal.aborted) {
-          setTrainers([]);
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-          isLoadingRef.current = false;
-        }
-      }
-    };
-
     loadTrainers();
-    
-    // Cleanup function для отмены запроса при размонтировании
-    return () => {
-      abortController.abort();
-      isLoadingRef.current = false;
-    };
-  }, []); // Пустой массив зависимостей
+  }, []);
+
+  const handleRetry = () => {
+    retry(loadTrainers);
+  }; // Пустой массив зависимостей
 
   const openModal = (trainer: Trainer) => {
     setSelectedTrainer(trainer);
@@ -73,6 +76,51 @@ export default function TrainersSection() {
       return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     }
   };
+
+  if (loading && !isUnderMaintenance) {
+    return (
+      <section id="coaches" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                  НАШИ ТРЕНЕРЫ
+                </span>
+              </h2>
+            </div>
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (isUnderMaintenance) {
+    return (
+      <section id="coaches" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="hero-jab-title text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
+                  НАШИ ТРЕНЕРЫ
+                </span>
+              </h2>
+            </div>
+            <UnderMaintenance 
+              sectionName="тренеры"
+              message={`Информация о тренерах временно недоступна. Попытка ${retryCount + 1} из 3.`}
+              showRetry={canRetry}
+              onRetry={handleRetry}
+            />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="coaches" className="relative py-12 sm:py-16 md:py-20 text-white overflow-hidden">
