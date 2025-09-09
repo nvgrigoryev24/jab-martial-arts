@@ -1,6 +1,6 @@
 # JAB Martial Arts - Comprehensive Project Guide
 
-**Версия:** 1.9.0  
+**Версия:** 1.11.0  
 **Дата обновления:** 15 января 2025  
 **Статус:** ✅ Production Ready  
 **Репозиторий:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
@@ -121,13 +121,16 @@ interface Schedule {
 ```typescript
 interface Location {
   id: string;
-  name: string;          // Название локации
-  address: string;       // Адрес
-  description: string;   // Описание
-  equipment: string;     // Оборудование
-  contact_phone: string; // Контактный телефон
-  is_active: boolean;    // Активность
-  sort_order: number;    // Порядок сортировки
+  name: string;                    // Название локации
+  address: string;                 // Адрес
+  description: string;             // Описание
+  facilities?: string[];           // Удобства (массив строк)
+  phone: string;                   // Контактный телефон
+  email: string;                   // Email для связи
+  photo?: string;                  // Фотография зала
+  overlay_opacity?: number;        // Прозрачность оверлея (0-100)
+  is_active: boolean;              // Активность
+  sort_order: number;              // Порядок сортировки
   color_theme?: string;  // ID цветовой схемы (relation)
   created: string;
   updated: string;

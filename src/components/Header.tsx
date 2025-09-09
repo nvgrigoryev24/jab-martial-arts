@@ -3,69 +3,21 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { smoothScrollToSection, getHeaderHeight } from '@/lib/smoothScroll';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
 
-  // Отслеживание активной секции
-  useEffect(() => {
-    const sections = ['about', 'coaches', 'pricing', 'schedule', 'contact'];
-    
-    const handleSectionChange = () => {
-      const headerOffset = window.innerWidth <= 768 ? 160 : 180;
-      const scrollPosition = window.scrollY + headerOffset;
-      
-      let foundActiveSection = '';
-      
-      // Проверяем, находимся ли мы в hero-секции (до первой секции)
-      const heroElement = document.getElementById('hero');
-      if (heroElement) {
-        const heroBottom = heroElement.offsetTop + heroElement.offsetHeight;
-        if (scrollPosition < heroBottom) {
-          // Мы в hero-секции, не устанавливаем активную секцию
-          setActiveSection('');
-          return;
-        }
-      }
-      
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            foundActiveSection = section;
-            break;
-          }
-        }
-      }
-      
-      // Устанавливаем активную секцию только если мы действительно находимся в одной из секций
-      setActiveSection(foundActiveSection);
-    };
-
-    window.addEventListener('scroll', handleSectionChange, { passive: true });
-    handleSectionChange(); // Проверяем при загрузке
-    
-    return () => window.removeEventListener('scroll', handleSectionChange);
-  }, []);
+  // Убираем отслеживание активной секции (будет добавлено позже)
 
   // Закрытие меню при клике на оверлей
   const handleOverlayClick = () => {
     setIsMenuOpen(false);
   };
 
-  // Обработка клика по ссылке с плавной прокруткой
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-    e.preventDefault();
+  // Обработка клика по ссылке
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     setIsMenuOpen(false);
-    
-    // Плавная прокрутка к секции
-    smoothScrollToSection(sectionId, {
-      duration: 600,
-      easing: 'easeInOutQuad'
-    });
+    // Обычный переход по якорной ссылке
   };
 
   // Блокировка скролла при открытом меню
@@ -81,23 +33,7 @@ export default function Header() {
     };
   }, [isMenuOpen]);
 
-  // Динамическое вычисление высоты Header
-  useEffect(() => {
-    const updateHeaderHeight = () => {
-      const headerHeight = getHeaderHeight();
-      document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
-    };
-
-    // Обновляем при загрузке
-    updateHeaderHeight();
-
-    // Обновляем при изменении размера окна
-    window.addEventListener('resize', updateHeaderHeight);
-
-    return () => {
-      window.removeEventListener('resize', updateHeaderHeight);
-    };
-  }, []);
+  // Убираем динамическое вычисление высоты Header (используем фиксированные значения в CSS)
 
   return (
     <>
@@ -122,23 +58,23 @@ export default function Header() {
 
               {/* Десктопное меню */}
               <nav className="hidden md:flex space-x-8">
-                <a href="#about" onClick={(e) => handleLinkClick(e, 'about')} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
+                <a href="#about" onClick={handleLinkClick} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
                   <span className="relative z-10">О школе</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-500 group-hover:w-full transition-all duration-300"></div>
                 </a>
-                <a href="#coaches" onClick={(e) => handleLinkClick(e, 'coaches')} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
+                <a href="#coaches" onClick={handleLinkClick} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
                   <span className="relative z-10">Тренеры</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-500 group-hover:w-full transition-all duration-300"></div>
                 </a>
-                <a href="#pricing" onClick={(e) => handleLinkClick(e, 'pricing')} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
+                <a href="#pricing" onClick={handleLinkClick} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
                   <span className="relative z-10">Абонементы</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-500 group-hover:w-full transition-all duration-300"></div>
                 </a>
-                <a href="#schedule" onClick={(e) => handleLinkClick(e, 'schedule')} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
+                <a href="#schedule" onClick={handleLinkClick} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
                   <span className="relative z-10">Расписание</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-500 group-hover:w-full transition-all duration-300"></div>
                 </a>
-                <a href="#contact" onClick={(e) => handleLinkClick(e, 'contact')} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
+                <a href="#contact" onClick={handleLinkClick} className="hero-jab-text text-white hover:text-red-400 transition-all duration-300 cursor-glove relative group">
                   <span className="relative z-10">Контакты</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-500 group-hover:w-full transition-all duration-300"></div>
                 </a>
@@ -148,7 +84,7 @@ export default function Header() {
               <div className="hidden md:block">
                 <a
                   href="#contact"
-                  onClick={(e) => handleLinkClick(e, 'contact')}
+                  onClick={handleLinkClick}
                   className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 hero-jab-text cursor-glove shadow-lg hover:shadow-red-500/25 transform hover:scale-105"
                 >
                   Записаться
@@ -187,46 +123,36 @@ export default function Header() {
         <nav className="pt-4">
           <a
             href="#about"
-            onClick={(e) => handleLinkClick(e, 'about')}
-            className={`mobile-nav-link mobile-menu-item ${
-              activeSection === 'about' ? 'active' : ''
-            }`}
+            onClick={handleLinkClick}
+            className="mobile-nav-link mobile-menu-item"
           >
             О школе
           </a>
           <a
             href="#coaches"
-            onClick={(e) => handleLinkClick(e, 'coaches')}
-            className={`mobile-nav-link mobile-menu-item ${
-              activeSection === 'coaches' ? 'active' : ''
-            }`}
+            onClick={handleLinkClick}
+            className="mobile-nav-link mobile-menu-item"
           >
             Тренеры
           </a>
           <a
             href="#pricing"
-            onClick={(e) => handleLinkClick(e, 'pricing')}
-            className={`mobile-nav-link mobile-menu-item ${
-              activeSection === 'pricing' ? 'active' : ''
-            }`}
+            onClick={handleLinkClick}
+            className="mobile-nav-link mobile-menu-item"
           >
             Абонементы
           </a>
           <a
             href="#schedule"
-            onClick={(e) => handleLinkClick(e, 'schedule')}
-            className={`mobile-nav-link mobile-menu-item ${
-              activeSection === 'schedule' ? 'active' : ''
-            }`}
+            onClick={handleLinkClick}
+            className="mobile-nav-link mobile-menu-item"
           >
             Расписание
           </a>
           <a
             href="#contact"
-            onClick={(e) => handleLinkClick(e, 'contact')}
-            className={`mobile-nav-link mobile-menu-item ${
-              activeSection === 'contact' ? 'active' : ''
-            }`}
+            onClick={handleLinkClick}
+            className="mobile-nav-link mobile-menu-item"
           >
             Контакты
           </a>
@@ -234,7 +160,7 @@ export default function Header() {
           {/* Кнопка записи */}
           <a
             href="#contact"
-            onClick={(e) => handleLinkClick(e, 'contact')}
+            onClick={handleLinkClick}
             className="mobile-cta-button mobile-menu-item"
           >
             Записаться на тренировку

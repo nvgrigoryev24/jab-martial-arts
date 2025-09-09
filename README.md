@@ -1,13 +1,50 @@
 # JAB Martial Arts - School Website
 
-**Version:** 1.9.0  
+**Version:** 1.11.0  
 **Last Updated:** January 15, 2025  
 **Status:** ✅ Production Ready  
 **Repository:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
 
 This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school website, featuring modern design, interactive elements, and comprehensive content management through PocketBase.
 
-## 🚀 Latest Updates (v1.9.0)
+## 🚀 Latest Updates (v1.11.0)
+
+### 🏢 Enhanced Location Cards System
+- **Redesigned Cards**: Minimalistic and stylish design with JAB brand colors
+- **PocketBase Integration**: Full content management through PocketBase
+- **Dynamic Images**: Support for custom photos with fallback to static images
+- **Smart Filtering**: Click "Записаться" to filter schedule by location
+- **Customizable Overlay**: Adjustable overlay opacity (0-100) via PocketBase
+- **Simplified Fields**: Removed unnecessary fields (metro, walking time, working hours)
+- **JAB Typography**: Consistent use of hero-jab-title and hero-jab-text classes
+- **Responsive Design**: Perfect display on all devices with smooth animations
+
+### 🎨 Visual Improvements
+- **Gradient Backgrounds**: JAB red gradients for most cards, blue for "Сопка"
+- **Image Support**: Special handling for "Сопка" (sopka.webp) and "Локомотив" (loco.jpg)
+- **Overlay System**: Dynamic overlay opacity for better text readability
+- **Hover Effects**: Smooth transitions and scale animations
+- **Decorative Elements**: JAB-style floating elements with blur effects
+
+### 🔧 Technical Enhancements
+- **Updated Location Interface**: New fields for overlay_opacity and simplified structure
+- **PocketBase Collections**: Updated locations collection with new field configuration
+- **Fallback System**: Graceful degradation when PocketBase data is unavailable
+- **Type Safety**: Full TypeScript support with proper interface definitions
+
+## 🚀 Previous Updates (v1.10.0)
+
+### 🏆 Hall of Fame Section
+- **Зал славы** - новая секция с лучшими спортсменами клуба
+- **Система рангов** - цветовая кодировка (золото, серебро, бронза) для топ-3
+- **Статусы спортсменов** - "Активный", "Завершил карьеру", "Тренер" с иконками
+- **Особые упоминания** - выделение выдающихся достижений
+- **Адаптивная сетка** - красивые карточки с hover эффектами
+- **Анимации** - плавное появление карточек с задержкой
+- **PocketBase интеграция** - динамическое управление контентом
+- **Призыв к действию** - мотивация для новых спортсменов
+
+## 🚀 Previous Updates (v1.9.0)
 
 ### 🎁 New Promo Section for Kids
 - **Full-Screen Background**: Beautiful background images with dark overlay for text readability

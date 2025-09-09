@@ -331,13 +331,13 @@ export default function FAQSection() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 
                   href="#contact"
-                  className="btn-jab bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl cursor-glove hero-jab-text smooth-scroll inline-block text-center"
+                  className="btn-jab bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl cursor-glove hero-jab-text inline-block text-center"
                 >
                   Связаться с нами
                 </a>
                 <a 
                   href="#contact"
-                  className="btn-jab border-2 border-red-500 text-red-400 hover:bg-red-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 cursor-glove hero-jab-text smooth-scroll inline-block text-center"
+                  className="btn-jab border-2 border-red-500 text-red-400 hover:bg-red-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 cursor-glove hero-jab-text inline-block text-center"
                 >
                   Записаться на тренировку
                 </a>

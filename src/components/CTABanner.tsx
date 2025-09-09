@@ -122,7 +122,7 @@ export default function CTABanner() {
                 <div className="text-center">
                   <Link
                     href={bannerData.button_link}
-                    className="relative px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl font-bold text-xs sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hero-jab-text text-center cursor-glove bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-red-500/25 hover:from-red-700 hover:to-red-800 inline-block w-full smooth-scroll"
+                    className="relative px-3 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl font-bold text-xs sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hero-jab-text text-center cursor-glove bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-red-500/25 hover:from-red-700 hover:to-red-800 inline-block w-full"
                   >
                     <span className="relative z-10">{bannerData.button_text}</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>

@@ -246,7 +246,7 @@ export default function TrainersSection() {
         <div className="text-center mt-8 sm:mt-12">
           <a 
             href="#contact" 
-            className="btn-jab bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl cursor-glove hero-jab-text w-full sm:w-auto smooth-scroll inline-block text-center"
+            className="btn-jab bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl cursor-glove hero-jab-text w-full sm:w-auto inline-block text-center"
           >
             Записаться на тренировку
           </a>

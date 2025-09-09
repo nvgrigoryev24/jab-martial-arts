@@ -65,6 +65,28 @@ export default function ScheduleSection() {
     };
   }, []);
 
+  // Обработчик события фильтрации по локации
+  useEffect(() => {
+    const handleLocationFilter = (event: CustomEvent) => {
+      const locationName = event.detail.locationName;
+      setSelectedGroup(locationName);
+    };
+
+    // Слушаем событие фильтрации по локации
+    window.addEventListener('locationFilter', handleLocationFilter as EventListener);
+
+    // Проверяем URL параметры при загрузке
+    const urlParams = new URLSearchParams(window.location.search);
+    const locationParam = urlParams.get('location');
+    if (locationParam) {
+      setSelectedGroup(locationParam);
+    }
+
+    return () => {
+      window.removeEventListener('locationFilter', handleLocationFilter as EventListener);
+    };
+  }, []);
+
   // Функция фильтрации
   const getFilteredSchedule = () => {
     let filtered = [...schedule];

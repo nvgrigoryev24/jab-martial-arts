@@ -9,7 +9,9 @@ import PricingSection from "@/components/PricingSection";
 import NewsSection from "@/components/NewsSection";
 import PunchingBagSection from "@/components/PunchingBagSection";
 import PromoSection from "@/components/PromoSection";
+import HallOfFameSection from "@/components/HallOfFameSection";
 import ScheduleSection from "@/components/ScheduleSection";
+import LocationsSection from "@/components/LocationsSection";
 import FAQSection from "@/components/FAQSection";
 import ContactSection from "@/components/ContactSection";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
@@ -26,6 +28,7 @@ export default function MainRenderer() {
     <div className="min-h-screen w-full">
       <HeroSection />
       <AboutSection />
+      <HallOfFameSection />
       <CTABanner />
       <TrainersSection />
       <PricingSection />
@@ -33,6 +36,7 @@ export default function MainRenderer() {
       <PunchingBagSection onPromoCodeGenerated={handlePromoCodeGenerated} />
       <PromoSection />
       <ScheduleSection />
+      <LocationsSection />
       <FAQSection />
       <ContactSection promoCode={promoCode} />
       <ScrollToTopButton />

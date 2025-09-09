@@ -22,20 +22,18 @@ export interface Trainer {
 
 export interface Location {
   id: string;
-  name: string;
-  address: string;
-  description: string;
-  equipment: string;
-  contact_phone?: string;
-  color_theme?: string; // ID цветовой схемы
-  is_active: boolean;
-  sort_order: number;
+  name: string;                    // Название зала
+  address: string;                 // Адрес
+  description: string;             // Описание зала
+  phone: string;                   // Телефон
+  email: string;                   // Email
+  facilities?: string[];           // Удобства (массив строк, опционально)
+  photo?: string;                  // Фотография зала
+  overlay_opacity?: number;        // Прозрачность оверлея (0-100)
+  is_active: boolean;              // Активный зал
+  sort_order: number;              // Порядок показа
   created: string;
   updated: string;
-  // Расширенные данные (заполняются при загрузке)
-  expand?: {
-    color_theme?: ColorTheme;
-  };
 }
 
 export interface HeroContent {
@@ -303,6 +301,23 @@ export interface FAQCategory {
   };
 }
 
+export interface HallOfFame {
+  id: string;
+  athlete_name: string;        // Имя и фамилия спортсмена
+  sport_type: string;          // Вид спорта
+  achievements: string;        // Достижения и награды (rich text)
+  photo?: string;             // Фотография спортсмена
+  rank: number;               // Ранг в зале славы (1-10)
+  years_active: string;       // Годы активности
+  current_status: string;     // Статус
+  special_mention?: string;   // Особое упоминание
+  is_featured: boolean;       // Выделить как особо важного
+  is_active: boolean;         // Отображать в зале славы
+  sort_order: number;         // Порядок показа
+  created: string;
+  updated: string;
+}
+
 // Функции для работы с данными
 export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
   try {
@@ -338,17 +353,21 @@ export const getTrainersServer = async (): Promise<Trainer[]> => {
   }
 };
 
-export const getLocations = async (): Promise<Location[]> => {
+export const getLocations = async (signal?: AbortSignal): Promise<Location[]> => {
   try {
     const records = await pb.collection('locations').getFullList<Location>({
       filter: 'is_active = true',
-      expand: 'color_theme',
       sort: 'sort_order'
-    });
+    }, { signal });
     return records;
   } catch (error: any) {
-    // Игнорируем ошибки автоперезагрузки Next.js
-    if (error?.status === 0 && error?.message?.includes('autocancelled')) {
+    // Игнорируем ошибки отмены запросов
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    // Игнорируем ошибки отсутствия коллекции (404)
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Locations collection not found, using mock data');
       return [];
     }
     console.error('Error fetching locations:', error);
@@ -910,5 +929,108 @@ export const getLevelColorStyles = (schedule: Schedule): { className: string; st
     className: "bg-gray-500/20 text-gray-300 border-gray-500/30",
     style: {}
   };
+};
+
+// Функции для работы с Hall of Fame
+export const getHallOfFame = async (signal?: AbortSignal): Promise<HallOfFame[]> => {
+  try {
+    const records = await pb.collection('hall_of_fame').getFullList<HallOfFame>({
+      filter: 'is_active = true',
+      sort: 'rank'
+    });
+    return records;
+  } catch (error: any) {
+    // Игнорируем ошибки отмены запросов
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return [];
+    }
+    // Игнорируем ошибки отсутствия коллекции (404)
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      console.log('Hall of fame collection not found, using mock data');
+      return [];
+    }
+    console.error('Error fetching hall of fame:', error);
+    return [];
+  }
+};
+
+// Функция для получения статуса спортсмена с иконкой
+export const getStatusIcon = (status: string): string => {
+  switch (status) {
+    case 'Активный':
+      return '🥊';
+    case 'Завершил карьеру':
+      return '🏆';
+    case 'Тренер':
+      return '👨‍🏫';
+    default:
+      return '⭐';
+  }
+};
+
+// Функция для получения цвета ранга
+export const getRankColor = (rank: number): string => {
+  switch (rank) {
+    case 1:
+      return 'text-yellow-400'; // Золото
+    case 2:
+      return 'text-gray-300'; // Серебро
+    case 3:
+      return 'text-amber-600'; // Бронза
+    default:
+      return 'text-red-500'; // Красный JAB
+  }
+};
+
+// Функция для получения фона ранга
+export const getRankBackground = (rank: number): string => {
+  switch (rank) {
+    case 1:
+      return 'bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 border-yellow-400/30';
+    case 2:
+      return 'bg-gradient-to-br from-gray-300/20 to-gray-500/20 border-gray-300/30';
+    case 3:
+      return 'bg-gradient-to-br from-amber-600/20 to-amber-800/20 border-amber-600/30';
+    default:
+      return 'bg-gradient-to-br from-red-500/20 to-red-700/20 border-red-500/30';
+  }
+};
+
+// Функция для получения иконки достижений
+export const getAchievementIcon = (athlete: HallOfFame): string => {
+  if (athlete.is_featured) {
+    return '⭐'; // Особо важные спортсмены
+  }
+  
+  // По статусу
+  switch (athlete.current_status) {
+    case 'Активный':
+      return '🥊';
+    case 'Тренер':
+      return '👨‍🏫';
+    case 'Завершил карьеру':
+      return '🏆';
+    default:
+      return '⭐';
+  }
+};
+
+// Функция для получения стиля значка достижений
+export const getAchievementBadge = (athlete: HallOfFame): string => {
+  if (athlete.is_featured) {
+    return 'bg-gradient-to-br from-yellow-400/30 to-yellow-600/30 border-yellow-400/50 text-yellow-300';
+  }
+  
+  // По статусу
+  switch (athlete.current_status) {
+    case 'Активный':
+      return 'bg-gradient-to-br from-green-500/30 to-green-700/30 border-green-500/50 text-green-300';
+    case 'Тренер':
+      return 'bg-gradient-to-br from-blue-500/30 to-blue-700/30 border-blue-500/50 text-blue-300';
+    case 'Завершил карьеру':
+      return 'bg-gradient-to-br from-purple-500/30 to-purple-700/30 border-purple-500/50 text-purple-300';
+    default:
+      return 'bg-gradient-to-br from-red-500/30 to-red-700/30 border-red-500/50 text-red-300';
+  }
 };
 

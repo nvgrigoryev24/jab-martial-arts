@@ -674,67 +674,27 @@ body::after {
   box-shadow: 0 10px 20px rgba(220, 38, 38, 0.3), 0 0 20px rgba(37, 99, 235, 0.3);
 }
 
-/* ===== УБИРАЕМ ПЛАВНУЮ ПРОКРУТКУ ===== */
+/* ===== УБИРАЕМ ПЛАВНУЮ ПРОКРУТКУ ПОЛНОСТЬЮ ===== */
 html {
-  scroll-behavior: auto; /* Отключаем плавную прокрутку */
+  scroll-behavior: auto;
+  /* Учитываем высоту Header при переходах по якорным ссылкам */
+  scroll-padding-top: 90px; /* Простой отступ для учета высоты Header */
 }
 
-/* Отключаем для всех устройств */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: auto; /* Отключено */
-  }
+/* Убираем все отступы для якорных ссылок */
+* {
+  scroll-margin-top: 0;
 }
 
-/* Уважение к настройкам пользователя */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-}
-
-/* Плавная прокрутка для мобильных устройств */
-@media (max-width: 768px) {
-  html {
-    scroll-padding-top: 140px; /* Увеличенный отступ для мобильных */
-  }
-  
-  * {
-    scroll-margin-top: 140px;
-  }
-}
-
-/* Специальные настройки для секций */
 section[id] {
-  scroll-margin-top: 160px;
+  scroll-margin-top: 0;
 }
 
+/* Адаптивные отступы для мобильных устройств */
 @media (max-width: 768px) {
-  section[id] {
-    scroll-margin-top: 140px;
+  html {
+    scroll-padding-top: 70px; /* Меньший отступ для мобильных */
   }
-}
-
-/* Дополнительные отступы для конкретных секций */
-#coaches,
-#schedule,
-#pricing,
-#contact {
-  scroll-margin-top: 180px;
-}
-
-@media (max-width: 768px) {
-  #coaches,
-  #schedule,
-  #pricing,
-  #contact {
-    scroll-margin-top: 160px;
-  }
-}
-
-/* Дополнительные стили для плавности */
-.smooth-scroll {
-  scroll-behavior: smooth;
 }
 
 /* Анимация появления секций при прокрутке */
@@ -751,11 +711,6 @@ section[id] {
 
 .fade-in-up {
   animation: fadeInUp 0.6s ease-out;
-}
-
-/* Отключаем плавный переход для якорных ссылок */
-a[href^="#"] {
-  scroll-behavior: auto;
 }
 
 /* ===== БУРГЕР-МЕНЮ В СТИЛЕ JAB ===== */
