@@ -101,18 +101,6 @@ export interface Schedule {
   };
 }
 
-export interface Contact {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  message?: string;
-  contact_methods?: string;
-  location?: string;
-  status: 'new' | 'contacted' | 'scheduled' | 'completed';
-  created: string;
-  updated: string;
-}
 
 export interface PricingPlan {
   id: string;
@@ -573,18 +561,6 @@ export const getSchedule = async (): Promise<Schedule[]> => {
   }
 };
 
-export const submitContact = async (contactData: Omit<Contact, 'id' | 'status' | 'created' | 'updated'>): Promise<Contact | null> => {
-  try {
-    const record = await pb.collection('contacts').create<Contact>({
-      ...contactData,
-      status: 'new'
-    });
-    return record;
-  } catch (error) {
-    console.error('Error submitting contact:', error);
-    return null;
-  }
-};
 
 export const getPricingPlans = async (signal?: AbortSignal): Promise<PricingPlan[]> => {
   try {

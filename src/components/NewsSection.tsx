@@ -260,7 +260,7 @@ export default function NewsSection() {
   };
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 relative overflow-hidden">
+    <section id="news" className="py-12 sm:py-16 md:py-20 relative overflow-hidden">
       {/* Декоративные элементы */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Красные и синие круги - адаптивные размеры */}

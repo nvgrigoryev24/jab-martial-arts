@@ -928,3 +928,5 @@ CREATE INDEX idx_user_stats_trainings ON user_stats(total_trainings);
 
 
 
+
+

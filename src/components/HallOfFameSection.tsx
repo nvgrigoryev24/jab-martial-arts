@@ -223,7 +223,7 @@ const HallOfFameSection: React.FC = () => {
   }
 
   return (
-    <section className="py-20 relative">
+    <section id="hall-of-fame" className="py-20 relative">
       <div className="container mx-auto px-4">
         {/* Заголовок секции */}
         <div className="text-center mb-12 sm:mb-16">
