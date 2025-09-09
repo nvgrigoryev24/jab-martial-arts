@@ -25,10 +25,9 @@ export interface Location {
   name: string;                    // Название зала
   address: string;                 // Адрес
   description: string;             // Описание зала
-  phone: string;                   // Телефон
-  email: string;                   // Email
-  facilities?: string[];           // Удобства (массив строк, опционально)
+  facilities?: string;             // Удобства (текст через запятую, опционально)
   photo?: string;                  // Фотография зала
+  button_text?: string;            // Текст кнопки записи
   overlay_opacity?: number;        // Прозрачность оверлея (0-100)
   is_active: boolean;              // Активный зал
   sort_order: number;              // Порядок показа
@@ -49,6 +48,22 @@ export interface HeroContent {
   image_alt: string;
   is_active: boolean;
   sort_order: number;
+  created: string;
+  updated: string;
+}
+
+export interface PreloaderSettings {
+  id: string;
+  is_enabled: boolean;
+  video_file: string;
+  loading_text: string;
+  show_once_per_session: boolean;
+  min_display_time: number;
+  max_display_time: number;
+  fade_out_duration: number;
+  background_color: string;
+  text_color: string;
+  is_active: boolean;
   created: string;
   updated: string;
 }
@@ -358,16 +373,19 @@ export const getLocations = async (signal?: AbortSignal): Promise<Location[]> =>
     const records = await pb.collection('locations').getFullList<Location>({
       filter: 'is_active = true',
       sort: 'sort_order'
-    }, { signal });
+    });
+    
+    console.log('Locations loaded from PocketBase:', records.length, 'records');
     return records;
   } catch (error: any) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      console.log('Locations request cancelled');
       return [];
     }
     // Игнорируем ошибки отсутствия коллекции (404)
     if (error.status === 404 || error.message?.includes('Missing collection context')) {
-      console.log('Locations collection not found, using mock data');
+      console.log('Locations collection not found (404), using mock data');
       return [];
     }
     console.error('Error fetching locations:', error);
@@ -1031,6 +1049,44 @@ export const getAchievementBadge = (athlete: HallOfFame): string => {
       return 'bg-gradient-to-br from-purple-500/30 to-purple-700/30 border-purple-500/50 text-purple-300';
     default:
       return 'bg-gradient-to-br from-red-500/30 to-red-700/30 border-red-500/50 text-red-300';
+  }
+};
+
+// Функция для получения настроек прелоудера
+export const getPreloaderSettings = async (signal?: AbortSignal): Promise<PreloaderSettings | null> => {
+  try {
+    // Получаем все записи без фильтра
+    let records: PreloaderSettings[] = [];
+    
+    try {
+      records = await pb.collection('preloader_settings').getFullList<PreloaderSettings>({
+        sort: 'created'
+      });
+    } catch (filterError: any) {
+      console.log('Error fetching preloader records:', filterError.message);
+      return null;
+    }
+    
+    // Фильтруем активные записи вручную
+    const activeRecords = records.filter(record => record.is_active === true);
+    
+    if (activeRecords.length > 0) {
+      return activeRecords[0];
+    } else {
+      return null;
+    }
+  } catch (error: any) {
+    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+      return null;
+    }
+    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+      return null;
+    }
+    if (error.status === 400) {
+      return null;
+    }
+    console.error('Error fetching preloader settings:', error);
+    return null;
   }
 };
 

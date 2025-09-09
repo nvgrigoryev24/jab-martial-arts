@@ -1,6 +1,6 @@
 # JAB Martial Arts - Comprehensive Project Guide
 
-**Версия:** 1.11.0  
+**Версия:** 1.12.0  
 **Дата обновления:** 15 января 2025  
 **Статус:** ✅ Production Ready  
 **Репозиторий:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
@@ -124,10 +124,9 @@ interface Location {
   name: string;                    // Название локации
   address: string;                 // Адрес
   description: string;             // Описание
-  facilities?: string[];           // Удобства (массив строк)
-  phone: string;                   // Контактный телефон
-  email: string;                   // Email для связи
+  facilities?: string;             // Удобства (текст через запятую)
   photo?: string;                  // Фотография зала
+  button_text?: string;            // Текст кнопки записи
   overlay_opacity?: number;        // Прозрачность оверлея (0-100)
   is_active: boolean;              // Активность
   sort_order: number;              // Порядок сортировки
@@ -378,6 +377,25 @@ interface PromoSection {
   support_button_link: string;      // Ссылка для поддержки
   is_active: boolean;              // Активность секции
   sort_order: number;              // Порядок показа
+  created: string;
+  updated: string;
+}
+```
+
+#### 3.6. **preloader_settings** - Настройки прелоудера
+```typescript
+interface PreloaderSettings {
+  id: string;
+  is_enabled: boolean;           // Включить прелоадер
+  video_file: string;            // Видео файл (обязательно)
+  loading_text: string;          // Текст загрузки
+  show_once_per_session: boolean; // Показывать только раз за сессию
+  min_display_time: number;      // Минимальное время показа (мс)
+  max_display_time: number;      // Максимальное время показа (мс)
+  fade_out_duration: number;     // Длительность исчезновения (мс)
+  background_color: string;      // Цвет фона (hex)
+  text_color: string;           // Цвет текста (hex)
+  is_active: boolean;           // Активность записи
   created: string;
   updated: string;
 }

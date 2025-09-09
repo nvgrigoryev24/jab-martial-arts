@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+.next/
+out/
+build/
+
+# PocketBase files
+pb_migrations/
+pb_data/
+
+# Public assets
+public/
+
+# Generated files
+next-env.d.ts
+*.tsbuildinfo
+
+# Config files
+tailwind.config.js
+postcss.config.mjs

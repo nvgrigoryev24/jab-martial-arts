@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { getPreloaderSettings, getImageUrl, type PreloaderSettings } from '@/lib/pocketbase';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -9,14 +10,72 @@ interface PreloaderProps {
 export default function Preloader({ onComplete }: PreloaderProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [settings, setSettings] = useState<PreloaderSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showLoadingText, setShowLoadingText] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Загружаем настройки прелоудера
   useEffect(() => {
-    // Таймаут для автоматического завершения прелоадера через 3 секунды
-    const timeout = setTimeout(() => {
+    const abortController = new AbortController();
+    
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        const data = await getPreloaderSettings(abortController.signal);
+        setSettings(data);
+      } catch (error) {
+        console.error('Error loading preloader settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Если настройки не загружены, ждем
+    if (loading) {
+      return;
+    }
+
+    // Если настройки загружены, но прелоадер отключен, пропускаем
+    if (settings && !settings.is_enabled) {
       setIsVisible(false);
       onComplete();
-    }, 3000);
+      return;
+    }
+
+    // Если настройки не загружены (PocketBase недоступен), используем fallback
+    if (!settings) {
+      const timeout = setTimeout(() => {
+        setIsVisible(false);
+        onComplete();
+      }, 3000);
+      
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+
+    // Если настройки загружены, используем их
+    if (settings) {
+      const duration = settings.max_display_time; // используем max_display_time в миллисекундах
+      
+      // Скрываем текст загрузки через 2 секунды
+      const hideLoadingTimeout = setTimeout(() => {
+        setShowLoadingText(false);
+      }, 2000);
+      
+      const timeout = setTimeout(() => {
+        setIsVisible(false);
+        onComplete();
+      }, duration);
 
     const video = videoRef.current;
     if (!video) {
@@ -53,43 +112,73 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       onComplete();
     });
 
-    return () => {
-      clearTimeout(timeout);
-      video.removeEventListener('loadeddata', handleVideoLoad);
-      video.removeEventListener('ended', handleVideoEnd);
-      video.removeEventListener('error', handleVideoError);
-    };
-  }, [onComplete]);
+      return () => {
+        clearTimeout(timeout);
+        clearTimeout(hideLoadingTimeout);
+        video.removeEventListener('loadeddata', handleVideoLoad);
+        video.removeEventListener('ended', handleVideoEnd);
+        video.removeEventListener('error', handleVideoError);
+      };
+    }
+  }, [onComplete, settings, loading]);
 
   if (!isVisible) return null;
 
+  // Если загружаем настройки, показываем индикатор загрузки
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="hero-jab-text text-white text-lg">Загрузка...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`fixed inset-0 z-50 bg-black transition-opacity duration-500 ${
+    <div className={`fixed inset-0 z-50 transition-opacity duration-500 ${
       isVisible ? 'opacity-100' : 'opacity-0'
-    }`}>
+    }`}
+         style={{ backgroundColor: settings?.background_color || '#000000' }}>
 
       {/* Видео контейнер */}
       <div className="relative w-full h-full flex items-center justify-center">
-        <video
-          ref={videoRef}
-          className="max-w-full max-h-full object-contain"
-          muted
-          playsInline
-          preload="auto"
-        >
-          <source src="/intro.mp4" type="video/mp4" />
-          Ваш браузер не поддерживает видео.
-        </video>
+        {settings?.video_file ? (
+          <video
+            ref={videoRef}
+            className="max-w-full max-h-full object-contain"
+            muted
+            playsInline
+            preload="auto"
+          >
+            <source src={getImageUrl(settings, settings.video_file)} type="video/mp4" />
+            Ваш браузер не поддерживает видео.
+          </video>
+        ) : (
+          <video
+            ref={videoRef}
+            className="max-w-full max-h-full object-contain"
+            muted
+            playsInline
+            preload="auto"
+          >
+            <source src="/intro.mp4" type="video/mp4" />
+            Ваш браузер не поддерживает видео.
+          </video>
+        )}
 
         {/* Логотип JAB поверх видео */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center">
-            <h1 className="hero-jab-title text-6xl md:text-8xl font-bold text-white mb-4 drop-shadow-2xl">
+            <h1 className="hero-jab-title text-6xl md:text-8xl font-bold mb-4 drop-shadow-2xl"
+                style={{ color: settings?.text_color || '#ffffff' }}>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
                 JAB
               </span>
             </h1>
-            <p className="hero-jab-text text-xl md:text-2xl text-gray-300 drop-shadow-lg">
+            <p className="hero-jab-text text-xl md:text-2xl drop-shadow-lg"
+               style={{ color: settings?.text_color || '#d1d5db' }}>
               БОКСЕРСКАЯ ШКОЛА
             </p>
           </div>
@@ -101,17 +190,24 @@ export default function Preloader({ onComplete }: PreloaderProps) {
             setIsVisible(false);
             onComplete();
           }}
-          className="absolute top-24 left-1/2 transform translate-x-24 px-4 py-2 text-white/80 hover:text-white border border-white/60 hover:border-white/80 rounded-lg transition-all duration-300 cursor-glove hero-jab-text text-sm font-medium hover:scale-105"
+          className="absolute top-24 left-1/2 transform translate-x-24 px-4 py-2 hover:text-white border border-white/60 hover:border-white/80 rounded-lg transition-all duration-300 cursor-glove hero-jab-text text-sm font-medium hover:scale-105"
+          style={{ 
+            color: settings?.text_color || 'rgba(255, 255, 255, 0.8)',
+            borderColor: settings?.text_color || 'rgba(255, 255, 255, 0.6)'
+          }}
         >
           Пропустить
         </button>
 
         {/* Индикатор загрузки */}
-        {!isVideoLoaded && (
+        {showLoadingText && (
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="hero-jab-text text-white text-lg">Загрузка...</span>
+              <span className="hero-jab-text text-lg"
+                    style={{ color: settings?.text_color || '#ffffff' }}>
+                {settings?.loading_text || 'Загрузка...'}
+              </span>
             </div>
           </div>
         )}

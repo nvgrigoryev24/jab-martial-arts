@@ -1,13 +1,24 @@
 # JAB Martial Arts - School Website
 
-**Version:** 1.11.0  
+**Version:** 1.12.0  
 **Last Updated:** January 15, 2025  
 **Status:** ✅ Production Ready  
 **Repository:** [GitHub](https://github.com/nvgrigoryev24/jab-martial-arts)
 
 This is a [Next.js](https://nextjs.org) project for JAB Martial Arts school website, featuring modern design, interactive elements, and comprehensive content management through PocketBase.
 
-## 🚀 Latest Updates (v1.11.0)
+## 🚀 Latest Updates (v1.12.0)
+
+### 🎬 Enhanced Preloader System
+- **PocketBase Integration**: Full preloader management through PocketBase
+- **Dynamic Settings**: Configurable duration, colors, and text via admin panel
+- **Smart Loading Text**: Customizable loading text with auto-hide after 2 seconds
+- **Fallback System**: 3-second fallback if PocketBase is unavailable
+- **Video Support**: Optional video file upload with automatic playback
+- **Color Customization**: Background and text colors fully configurable
+- **Responsive Design**: Perfect display on all devices
+
+## 🚀 Previous Updates (v1.11.0)
 
 ### 🏢 Enhanced Location Cards System
 - **Redesigned Cards**: Minimalistic and stylish design with JAB brand colors

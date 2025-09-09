@@ -18,6 +18,20 @@ export default function ScheduleSection() {
   
   // Состояние для мобильного аккордеона
   const [openDays, setOpenDays] = useState<string[]>([]);
+  
+
+  // Функция для сброса всех фильтров
+  const resetAllFilters = () => {
+    setSelectedDay('all');
+    setSelectedGroup('all');
+    setSelectedLevel('all');
+    setSelectedPeriod('all');
+    
+    // Очищаем URL параметры
+    const url = new URL(window.location.href);
+    url.searchParams.delete('location');
+    window.history.replaceState({}, '', url.toString());
+  };
 
   useEffect(() => {
     let isCancelled = false;
@@ -75,12 +89,9 @@ export default function ScheduleSection() {
     // Слушаем событие фильтрации по локации
     window.addEventListener('locationFilter', handleLocationFilter as EventListener);
 
-    // Проверяем URL параметры при загрузке
-    const urlParams = new URLSearchParams(window.location.search);
-    const locationParam = urlParams.get('location');
-    if (locationParam) {
-      setSelectedGroup(locationParam);
-    }
+    // При перезагрузке страницы сбрасываем все фильтры
+    // и очищаем URL параметры для чистого состояния
+    resetAllFilters();
 
     return () => {
       window.removeEventListener('locationFilter', handleLocationFilter as EventListener);
@@ -136,13 +147,6 @@ export default function ScheduleSection() {
     return filtered;
   };
 
-  // Сброс фильтров
-  const resetFilters = () => {
-    setSelectedDay('all');
-    setSelectedGroup('all');
-    setSelectedLevel('all');
-    setSelectedPeriod('all');
-  };
 
   // Управление аккордеоном для мобильных
   const toggleDay = (day: string) => {
@@ -277,6 +281,7 @@ export default function ScheduleSection() {
             </p>
           </div>
 
+
           {/* Фильтры */}
           <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-red-500/20 mb-6 sm:mb-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
@@ -365,7 +370,7 @@ export default function ScheduleSection() {
               {/* Кнопка сброса */}
               <div className="flex items-end sm:col-span-2 lg:col-span-1">
                 <button
-                  onClick={resetFilters}
+                  onClick={resetAllFilters}
                   className="w-full px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 cursor-glove hero-jab-text text-sm"
                 >
                   Сбросить
@@ -404,7 +409,7 @@ export default function ScheduleSection() {
                         По выбранным фильтрам занятий не найдено
                       </p>
                       <button
-                        onClick={resetFilters}
+                        onClick={resetAllFilters}
                         className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors cursor-glove hero-jab-text"
                       >
                         Сбросить фильтры

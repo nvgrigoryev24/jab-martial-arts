@@ -152,22 +152,31 @@ export default function PromoSection() {
       style={{ minHeight: '100vh', width: '100%' }}
     >
       {/* Фоновое изображение */}
-      <div className="absolute inset-0">
+      <div 
+        className="absolute inset-0 w-full h-full"
+        style={{ height: '100vh' }}
+      >
         {/* Изображение для десктопа */}
         <Image
           src={backgroundImageUrl}
           alt="Дети занимаются спортом"
-          fill
-          className="object-cover hidden sm:block"
+          width={1920}
+          height={1080}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+          className="object-cover hidden sm:block w-full h-full"
           priority
+          quality={90}
         />
         {/* Изображение для мобильных */}
         <Image
           src={backgroundImageUrlMobile}
           alt="Дети занимаются спортом"
-          fill
-          className="object-cover block sm:hidden"
+          width={640}
+          height={1136}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+          className="object-cover block sm:hidden w-full h-full"
           priority
+          quality={90}
         />
         {/* Темный оверлей для читаемости текста */}
         <div 

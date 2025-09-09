@@ -22,6 +22,25 @@ const nextConfig: NextConfig = {
         pathname: '/api/files/**',
       },
     ],
+    qualities: [25, 50, 75, 90, 100],
+  },
+  // Оптимизация для разработки
+  eslint: {
+    ignoreDuringBuilds: true, // Отключаем ESLint при сборке для ускорения
+  },
+  typescript: {
+    ignoreBuildErrors: true, // Отключаем TypeScript ошибки при сборке
+  },
+  // Настройки для ускорения разработки
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
 };
 

@@ -9,24 +9,28 @@ const LocationsSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    
     const fetchLocations = async () => {
       try {
         setLoading(true);
-        const data = await getLocations();
+        const data = await getLocations(abortController.signal);
 
-        // Если данных нет, используем моковые данные для демонстрации
-        if (data.length === 0) {
-          console.log('Locations collection not found, using mock data');
+        // Если данные загружены из PocketBase, используем их
+        if (data.length > 0) {
+          console.log('Locations loaded from PocketBase:', data.length, 'records');
+          setLocations(data);
+        } else {
+          console.log('No active locations found in PocketBase, using mock data');
           const mockData: Location[] = [
             {
               id: '1',
               name: 'Центральный зал',
               address: 'ул. Красная, 15, Москва',
               description: 'Главный зал школы JAB с профессиональным оборудованием и просторной зоной для тренировок',
-              phone: '+7 (495) 123-45-67',
-              email: 'central@jab-martial-arts.ru',
-              facilities: ['Профессиональный ринг', 'Тренажерный зал', 'Раздевалки', 'Душевые', 'Парковка'],
+              facilities: 'Профессиональный ринг, Тренажерный зал, Раздевалки, Душевые, Парковка',
               photo: 'mock-location-1.jpg',
+              button_text: 'Записаться',
               overlay_opacity: 20,
               is_active: true,
               sort_order: 1,
@@ -38,10 +42,9 @@ const LocationsSection: React.FC = () => {
               name: 'Зал "Сопка"',
               address: 'пр. Мира, 88, Москва',
               description: 'Современный зал в северной части города с новейшим оборудованием для всех видов единоборств',
-              phone: '+7 (495) 234-56-78',
-              email: 'north@jab-martial-arts.ru',
-              facilities: ['Кикбоксинг ринг', 'Зал для ММА', 'Кардио зона', 'Раздевалки', 'Душевые'],
+              facilities: 'Кикбоксинг ринг, Зал для ММА, Кардио зона, Раздевалки, Душевые',
               photo: 'sopka.webp',
+              button_text: 'Выбрать зал',
               overlay_opacity: 30,
               is_active: true,
               sort_order: 2,
@@ -53,10 +56,9 @@ const LocationsSection: React.FC = () => {
               name: 'Зал "Локомотив"',
               address: 'ул. Ленина, 42, Москва',
               description: 'Исторический зал в здании бывшего депо с уникальной атмосферой и профессиональным оборудованием',
-              phone: '+7 (495) 345-67-89',
-              email: 'loco@jab-martial-arts.ru',
-              facilities: ['Боксерский ринг', 'Зал для дзюдо', 'Кардио зона', 'Раздевалки', 'Душевые'],
+              facilities: 'Боксерский ринг, Зал для дзюдо, Кардио зона, Раздевалки, Душевые',
               photo: 'loco.jpg',
+              button_text: 'Забронировать',
               overlay_opacity: 25,
               is_active: true,
               sort_order: 3,
@@ -68,10 +70,9 @@ const LocationsSection: React.FC = () => {
               name: 'Зал "Юг"',
               address: 'ул. Южная, 15, Москва',
               description: 'Уютный зал в южном районе с семейной атмосферой и индивидуальным подходом к каждому ученику',
-              phone: '+7 (495) 456-78-90',
-              email: 'south@jab-martial-arts.ru',
-              facilities: ['Боксерский ринг', 'Детская зона', 'Раздевалки', 'Душевые', 'Кафе'],
+              facilities: 'Боксерский ринг, Детская зона, Раздевалки, Душевые, Кафе',
               photo: 'mock-location-4.jpg',
+              button_text: 'Записаться',
               overlay_opacity: 15,
               is_active: true,
               sort_order: 4,
@@ -80,8 +81,6 @@ const LocationsSection: React.FC = () => {
             }
           ];
           setLocations(mockData);
-        } else {
-          setLocations(data);
         }
       } catch (err) {
         console.error('Error fetching locations:', err);
@@ -92,6 +91,10 @@ const LocationsSection: React.FC = () => {
     };
 
     fetchLocations();
+    
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   if (loading) {
@@ -140,15 +143,6 @@ const LocationsSection: React.FC = () => {
               Выберите удобный зал для тренировок
             </p>
 
-            {/* Индикатор демо-данных */}
-            {locations.length > 0 && locations[0].photo?.startsWith('mock-location') && (
-              <div className="mt-6 inline-block bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-full px-6 py-3">
-                <span className="hero-jab-text text-red-300 text-sm font-medium flex items-center gap-2">
-                  <span className="animate-bounce">🎭</span>
-                  Демо-данные для предварительного просмотра
-                </span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -208,7 +202,10 @@ const LocationsSection: React.FC = () => {
                   {location.name.includes('Сопка') && (
                     <div className="absolute inset-0">
                       <img
-                        src={location.photo ? getImageUrl(location, location.photo) : "/sopka.webp"}
+                        src={(() => {
+                          const imageUrl = location.photo ? getImageUrl(location, location.photo) : null;
+                          return imageUrl && imageUrl.trim() !== '' ? imageUrl : "/sopka.webp";
+                        })()}
                         alt={`Зал ${location.name}`}
                         className="w-full h-full object-cover"
                       />
@@ -225,7 +222,10 @@ const LocationsSection: React.FC = () => {
                   {location.name.includes('Локомотив') && (
                     <div className="absolute inset-0">
                       <img
-                        src={location.photo ? getImageUrl(location, location.photo) : "/loco.jpg"}
+                        src={(() => {
+                          const imageUrl = location.photo ? getImageUrl(location, location.photo) : null;
+                          return imageUrl && imageUrl.trim() !== '' ? imageUrl : "/loco.jpg";
+                        })()}
                         alt={`Зал ${location.name}`}
                         className="w-full h-full object-cover"
                       />
@@ -263,7 +263,7 @@ const LocationsSection: React.FC = () => {
                   {/* Нижняя часть - информация */}
                   <div className="relative z-10 space-y-3">
                     {/* Адрес */}
-                    <div className="flex items-center gap-2 text-white/90">
+                    <div className="flex items-center gap-2 text-white/90 group-hover:opacity-0 transition-opacity duration-300">
                       <span className="text-sm">📍</span>
                       <span className="hero-jab-text text-sm">{location.address}</span>
                     </div>
@@ -276,25 +276,22 @@ const LocationsSection: React.FC = () => {
                       </div>
                     )}
                     
-                    {/* Удобства */}
-                    {location.facilities && location.facilities.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {location.facilities.slice(0, 3).map((facility, index) => (
-                          <span 
-                            key={index}
-                            className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs hero-jab-text"
-                          >
-                            {facility}
-                          </span>
-                        ))}
-                        {location.facilities.length > 3 && (
-                          <span className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs hero-jab-text">
-                            +{location.facilities.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
+
+                  {/* Теги удобств при hover */}
+                  {location.facilities && (
+                    <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 flex flex-wrap justify-start" style={{ lineHeight: '1', maxHeight: '120px', overflow: 'hidden' }}>
+                      {location.facilities.split(', ').map((facility, index) => (
+                        <span 
+                          key={index}
+                          className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs hero-jab-text inline-block mr-1 mb-1"
+                          style={{ lineHeight: '1.2' }}
+                        >
+                          {facility.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Hover эффект в стиле JAB */}
                   <div className="absolute inset-0 bg-gradient-to-t from-red-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -302,19 +299,10 @@ const LocationsSection: React.FC = () => {
 
                 {/* Нижняя панель с кнопкой в стиле JAB */}
                 <div className="bg-gray-900 p-6 border-t border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex-1 text-center sm:text-left">
                       <p className="hero-jab-text text-sm text-gray-300 font-medium mb-1">Выберите этот зал</p>
                       <p className="hero-jab-text text-xs text-gray-400">Нажмите для записи</p>
-                      
-                      {/* Контактная информация */}
-                      {location.phone && (
-                        <div className="mt-2">
-                          <p className="hero-jab-text text-xs text-gray-500">
-                            📞 {location.phone}
-                          </p>
-                        </div>
-                      )}
                     </div>
                     <button 
                       onClick={() => {
@@ -335,9 +323,9 @@ const LocationsSection: React.FC = () => {
                           }));
                         }
                       }}
-                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2 hover:shadow-lg hover:shadow-red-500/25"
+                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-red-500/25 w-full sm:w-auto"
                     >
-                      Записаться
+                      {location.button_text || 'Записаться'}
                       <span className="text-xs">→</span>
                     </button>
                   </div>
