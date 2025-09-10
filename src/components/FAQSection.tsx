@@ -42,7 +42,7 @@ export default function FAQSection() {
         console.log('No FAQ data found in PocketBase');
         showMaintenance();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching FAQ data:', error);
       showMaintenance();
     } finally {

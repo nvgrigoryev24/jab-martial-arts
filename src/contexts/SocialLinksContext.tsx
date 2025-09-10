@@ -38,9 +38,9 @@ export const SocialLinksProvider = ({ children }: SocialLinksProviderProps) => {
         const data = await getSocialLinks();
         setSocialLinks(data);
         setError(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('SocialLinksProvider: Error loading social links:', err);
-        setError(err.message || 'Failed to load social links');
+        setError(err instanceof Error ? err.message : 'Failed to load social links');
         setSocialLinks([]);
       } finally {
         setIsLoading(false);

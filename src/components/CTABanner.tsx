@@ -19,8 +19,8 @@ export default function CTABanner() {
       try {
         const banner = await getCTABanner(abortController.signal);
         setCtaBanner(banner);
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name !== 'AbortError') {
           console.error('Error fetching CTA banner:', error);
         }
       } finally {

@@ -406,9 +406,9 @@ export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запроса
-    if (error.name === 'AbortError' || error.message?.includes('autocancelled')) {
+    if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('autocancelled'))) {
       console.log('Trainers request cancelled, returning empty array');
       return []; // Возвращаем пустой массив вместо пробрасывания ошибки
     }
@@ -446,14 +446,14 @@ export const getLocations = async (signal?: AbortSignal): Promise<Location[]> =>
     
     console.log('Locations loaded from PocketBase:', records.length, 'records');
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    if (error instanceof Error && (error.message?.includes('autocancelled') || error.message?.includes('cancelled'))) {
       console.log('Locations request cancelled');
       return [];
     }
     // Игнорируем ошибки отсутствия коллекции (404)
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+    if ((error as { status?: number })?.status === 404 || (error instanceof Error && error.message?.includes('Missing collection context'))) {
       console.log('Locations collection not found (404), using mock data');
       return [];
     }
@@ -470,7 +470,7 @@ export const getHeroContent = async (): Promise<HeroContent | null> => {
       limit: 1
     });
     return records.length > 0 ? records[0] : null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки автоперезагрузки Next.js
     if (error?.status === 0 && error?.message?.includes('autocancelled')) {
       return null;
@@ -488,7 +488,7 @@ export const getAboutPage = async (): Promise<AboutPage | null> => {
       limit: 1
     });
     return records.length > 0 ? records[0] : null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки автоперезагрузки Next.js
     if (error?.status === 0 && error?.message?.includes('autocancelled')) {
       return null;
@@ -508,7 +508,7 @@ export const getAboutCards = async (signal?: AbortSignal): Promise<AboutCard[]> 
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
@@ -529,7 +529,7 @@ export const getCTABanner = async (signal?: AbortSignal): Promise<CTABanner | nu
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records.length > 0 ? records[0] : null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return null;
@@ -550,7 +550,7 @@ export const getPromoSection = async (signal?: AbortSignal): Promise<PromoSectio
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records.length > 0 ? records[0] : null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return null;
@@ -571,7 +571,7 @@ export const getFAQCategories = async (signal?: AbortSignal): Promise<FAQCategor
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
@@ -592,7 +592,7 @@ export const getFAQs = async (signal?: AbortSignal): Promise<FAQ[]> => {
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
@@ -609,7 +609,7 @@ export const getColorThemes = async (): Promise<ColorTheme[]> => {
       sort: 'sort_order'
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки автоперезагрузки Next.js
     if (error?.status === 0 && error?.message?.includes('autocancelled')) {
       return [];
@@ -627,7 +627,7 @@ export const getTrainingLevels = async (): Promise<TrainingLevel[]> => {
       sort: 'sort_order'
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки автоперезагрузки Next.js
     if (error?.status === 0 && error?.message?.includes('autocancelled')) {
       return [];
@@ -647,7 +647,7 @@ export const getSchedule = async (): Promise<Schedule[]> => {
     
     
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки автоперезагрузки Next.js
     if (error?.status === 0 && error?.message?.includes('autocancelled')) {
       return [];
@@ -668,7 +668,7 @@ export const getPricingPlans = async (signal?: AbortSignal): Promise<PricingPlan
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
@@ -688,7 +688,7 @@ export const getNews = async (signal?: AbortSignal): Promise<News[]> => {
       autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
@@ -704,7 +704,7 @@ export const getNewsById = async (id: string, signal?: AbortSignal): Promise<New
       expand: 'category,author,reactions,category.color_theme'
     });
     return record;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return null;
     }
@@ -1035,7 +1035,7 @@ export const getHallOfFame = async (signal?: AbortSignal): Promise<HallOfFame[]>
       sort: 'rank'
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Игнорируем ошибки отмены запросов
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
@@ -1140,8 +1140,8 @@ export const getPreloaderSettings = async (signal?: AbortSignal): Promise<Preloa
       records = await pb.collection('preloader_settings').getFullList<PreloaderSettings>({
         sort: 'created'
       });
-    } catch (filterError: any) {
-      console.log('Error fetching preloader records:', filterError.message);
+    } catch (filterError: unknown) {
+      console.log('Error fetching preloader records:', filterError instanceof Error ? filterError.message : 'Unknown error');
       return null;
     }
     
@@ -1153,7 +1153,7 @@ export const getPreloaderSettings = async (signal?: AbortSignal): Promise<Preloa
     } else {
       return null;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return null;
     }
@@ -1176,7 +1176,7 @@ export const getNavigationLinks = async (signal?: AbortSignal): Promise<Navigati
       sort: 'sort_order'
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
     }
@@ -1197,7 +1197,7 @@ export const getHeaderContent = async (signal?: AbortSignal): Promise<HeaderCont
       limit: 1
     });
     return records.length > 0 ? records[0] : null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return null;
     }
@@ -1217,7 +1217,7 @@ export const getSocialLinks = async (signal?: AbortSignal): Promise<SocialLink[]
       sort: 'sort_order'
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
     }
@@ -1239,7 +1239,7 @@ export const getFooterContent = async (signal?: AbortSignal): Promise<FooterCont
       limit: 1
     });
     return records.length > 0 ? records[0] : null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return null;
     }
@@ -1259,7 +1259,7 @@ export const getFooterLinks = async (signal?: AbortSignal): Promise<FooterLink[]
       sort: 'sort_order'
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
     }
@@ -1279,7 +1279,7 @@ export const getFooterContacts = async (signal?: AbortSignal): Promise<FooterCon
       sort: 'sort_order'
     });
     return records;
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
       return [];
     }

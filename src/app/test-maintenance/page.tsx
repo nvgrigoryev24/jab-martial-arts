@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import UnderMaintenance from '@/components/UnderMaintenance';
 
 export default function TestMaintenance() {
@@ -30,12 +31,12 @@ export default function TestMaintenance() {
       <div className="relative z-10 h-full w-full flex flex-col justify-center items-center px-4">
         {/* Кнопка возврата - наверху */}
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
-          <a 
+          <Link 
             href="/"
             className="inline-block bg-red-500 hover:bg-red-600 text-white px-2 sm:px-4 lg:px-6 py-1 sm:py-2 lg:py-3 rounded-lg font-bold uppercase tracking-wider transition-all duration-300 hero-jab-text cursor-glove transform hover:scale-105 text-xs sm:text-sm lg:text-base whitespace-nowrap"
           >
             ← Главная
-          </a>
+          </Link>
         </div>
 
         {/* Основной контент - центрированный */}

@@ -22,7 +22,9 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     const fetchSettings = async () => {
       try {
         setLoading(true);
+        console.log('Loading preloader settings...');
         const data = await getPreloaderSettings(abortController.signal);
+        console.log('Preloader settings loaded:', data);
         setSettings(data);
       } catch (error) {
         console.error('Error loading preloader settings:', error);
@@ -39,88 +41,19 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   }, []);
 
   useEffect(() => {
-    // Если настройки не загружены, ждем
-    if (loading) {
-      return;
-    }
-
-    // Если настройки загружены, но прелоадер отключен, пропускаем
-    if (settings && !settings.is_enabled) {
+    console.log('Preloader useEffect triggered:', { loading, settings });
+    
+    // Временно упрощаем логику - всегда завершаем через 3 секунды
+    const timeout = setTimeout(() => {
+      console.log('Preloader timeout completed, hiding preloader...');
       setIsVisible(false);
       onComplete();
-      return;
-    }
-
-    // Если настройки не загружены (PocketBase недоступен), используем fallback
-    if (!settings) {
-      const timeout = setTimeout(() => {
-        setIsVisible(false);
-        onComplete();
-      }, 3000);
-      
-      return () => {
-        clearTimeout(timeout);
-      };
-    }
-
-    // Если настройки загружены, используем их
-    if (settings) {
-      const duration = settings.max_display_time; // используем max_display_time в миллисекундах
-      
-      // Скрываем текст загрузки через 2 секунды
-      const hideLoadingTimeout = setTimeout(() => {
-        setShowLoadingText(false);
-      }, 2000);
-      
-      const timeout = setTimeout(() => {
-        setIsVisible(false);
-        onComplete();
-      }, duration);
-
-    const video = videoRef.current;
-    if (!video) {
+    }, 3000);
+    
+    return () => {
       clearTimeout(timeout);
-      return;
-    }
-
-    const handleVideoLoad = () => {
-      setIsVideoLoaded(true);
     };
-
-    const handleVideoEnd = () => {
-      clearTimeout(timeout);
-      setIsVisible(false);
-      onComplete();
-    };
-
-    const handleVideoError = () => {
-      // Если видео не загрузилось, пропускаем прелоадер
-      clearTimeout(timeout);
-      setIsVisible(false);
-      onComplete();
-    };
-
-    video.addEventListener('loadeddata', handleVideoLoad);
-    video.addEventListener('ended', handleVideoEnd);
-    video.addEventListener('error', handleVideoError);
-
-    // Автоматически запускаем видео
-    video.play().catch(() => {
-      // Если автовоспроизведение заблокировано, пропускаем прелоадер
-      clearTimeout(timeout);
-      setIsVisible(false);
-      onComplete();
-    });
-
-      return () => {
-        clearTimeout(timeout);
-        clearTimeout(hideLoadingTimeout);
-        video.removeEventListener('loadeddata', handleVideoLoad);
-        video.removeEventListener('ended', handleVideoEnd);
-        video.removeEventListener('error', handleVideoError);
-      };
-    }
-  }, [onComplete, settings, loading]);
+  }, [onComplete]);
 
   if (!isVisible) return null;
 

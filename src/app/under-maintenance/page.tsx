@@ -16,7 +16,7 @@ export default function UnderMaintenancePage() {
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
-            Демонстрация компонента "На ремонте"
+            Демонстрация компонента &quot;На ремонте&quot;
           </h1>
           <p className="text-gray-300">
             Различные варианты использования компонента UnderMaintenance

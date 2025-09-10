@@ -24,7 +24,7 @@ export function useUnderMaintenance({
     setRetryCount(0);
   }, []);
 
-  const retry = useCallback(async (retryFunction: () => Promise<any>) => {
+  const retry = useCallback(async (retryFunction: () => Promise<void>) => {
     if (retryCount >= maxRetries) {
       console.warn(`Максимальное количество попыток (${maxRetries}) достигнуто для ${sectionName}`);
       return;

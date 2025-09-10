@@ -21,8 +21,8 @@ export default function PromoSection() {
       try {
         const promo = await getPromoSection(abortController.signal);
         setPromoData(promo);
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name !== 'AbortError') {
           console.error('Error fetching promo section:', error);
         }
       } finally {
