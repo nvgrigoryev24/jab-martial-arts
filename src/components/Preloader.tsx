@@ -127,10 +127,10 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   // Если загружаем настройки, показываем индикатор загрузки
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="hero-jab-text text-white text-lg">Загрузка...</span>
+      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center px-4">
+        <div className="flex items-center gap-2 xs:gap-3">
+          <div className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="hero-jab-text text-white text-sm xs:text-base sm:text-lg whitespace-nowrap">Загрузка...</span>
         </div>
       </div>
     );
@@ -169,28 +169,28 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         )}
 
         {/* Логотип JAB поверх видео */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-4">
           <div className="text-center">
-            <h1 className="hero-jab-title text-6xl md:text-8xl font-bold mb-4 drop-shadow-2xl"
+            <h1 className="hero-jab-title text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-2 xs:mb-3 sm:mb-4 drop-shadow-2xl"
                 style={{ color: settings?.text_color || '#ffffff' }}>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
                 JAB
               </span>
             </h1>
-            <p className="hero-jab-text text-xl md:text-2xl drop-shadow-lg"
+            <p className="hero-jab-text text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl drop-shadow-lg whitespace-nowrap"
                style={{ color: settings?.text_color || '#d1d5db' }}>
               БОКСЕРСКАЯ ШКОЛА
             </p>
           </div>
         </div>
 
-        {/* Кнопка пропуска - НАД видео, справа от центра */}
+        {/* Кнопка пропуска - адаптивное позиционирование */}
         <button
           onClick={() => {
             setIsVisible(false);
             onComplete();
           }}
-          className="absolute top-24 left-1/2 transform translate-x-24 px-4 py-2 hover:text-white border border-white/60 hover:border-white/80 rounded-lg transition-all duration-300 cursor-glove hero-jab-text text-sm font-medium hover:scale-105"
+          className="absolute top-4 xs:top-6 sm:top-8 md:top-12 lg:top-24 left-1/2 transform -translate-x-1/2 xs:translate-x-8 sm:translate-x-12 md:translate-x-16 lg:translate-x-24 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 hover:text-white border border-white/60 hover:border-white/80 rounded-lg transition-all duration-300 cursor-glove hero-jab-text text-xs xs:text-sm font-medium hover:scale-105 whitespace-nowrap"
           style={{ 
             color: settings?.text_color || 'rgba(255, 255, 255, 0.8)',
             borderColor: settings?.text_color || 'rgba(255, 255, 255, 0.6)'
@@ -201,10 +201,10 @@ export default function Preloader({ onComplete }: PreloaderProps) {
 
         {/* Индикатор загрузки */}
         {showLoadingText && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="hero-jab-text text-lg"
+          <div className="absolute bottom-4 xs:bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 px-4">
+            <div className="flex items-center gap-2 xs:gap-3">
+              <div className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="hero-jab-text text-sm xs:text-base sm:text-lg whitespace-nowrap"
                     style={{ color: settings?.text_color || '#ffffff' }}>
                 {settings?.loading_text || 'Загрузка...'}
               </span>

@@ -401,12 +401,16 @@ export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
     const records = await pb.collection('coaches').getFullList<Trainer>({
       filter: 'is_active = true',
       sort: 'sort_order'
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: any) {
     // Игнорируем ошибки отмены запроса
     if (error.name === 'AbortError' || error.message?.includes('autocancelled')) {
-      throw error; // Пробрасываем ошибку отмены наверх
+      console.log('Trainers request cancelled, returning empty array');
+      return []; // Возвращаем пустой массив вместо пробрасывания ошибки
     }
     console.error('Error fetching trainers:', error);
     return [];
@@ -435,6 +439,9 @@ export const getLocations = async (signal?: AbortSignal): Promise<Location[]> =>
     const records = await pb.collection('locations').getFullList<Location>({
       filter: 'is_active = true',
       sort: 'sort_order'
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     
     console.log('Locations loaded from PocketBase:', records.length, 'records');
@@ -496,6 +503,9 @@ export const getAboutCards = async (signal?: AbortSignal): Promise<AboutCard[]> 
     const records = await pb.collection('about_cards').getFullList<AboutCard>({
       filter: 'is_active = true',
       sort: 'sort_order'
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: any) {
@@ -514,6 +524,9 @@ export const getCTABanner = async (signal?: AbortSignal): Promise<CTABanner | nu
       filter: 'is_active = true',
       sort: 'sort_order',
       limit: 1
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records.length > 0 ? records[0] : null;
   } catch (error: any) {
@@ -532,6 +545,9 @@ export const getPromoSection = async (signal?: AbortSignal): Promise<PromoSectio
       filter: 'is_active = true',
       sort: 'sort_order',
       limit: 1
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records.length > 0 ? records[0] : null;
   } catch (error: any) {
@@ -550,6 +566,9 @@ export const getFAQCategories = async (signal?: AbortSignal): Promise<FAQCategor
       filter: 'is_active = true',
       expand: 'color_theme',
       sort: 'sort_order'
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: any) {
@@ -568,6 +587,9 @@ export const getFAQs = async (signal?: AbortSignal): Promise<FAQ[]> => {
       filter: 'is_active = true',
       expand: 'faq_category.color_theme',
       sort: 'sort_order'
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: any) {
@@ -641,6 +663,9 @@ export const getPricingPlans = async (signal?: AbortSignal): Promise<PricingPlan
     const records = await pb.collection('pricing_plans').getFullList<PricingPlan>({
       filter: 'is_active = true',
       sort: 'sort_order'
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: any) {
@@ -658,6 +683,9 @@ export const getNews = async (signal?: AbortSignal): Promise<News[]> => {
       filter: 'is_published = true',
       sort: 'sort_order',
       expand: 'category,author,reactions,category.color_theme'
+    }, {
+      signal, // Передаем AbortSignal
+      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: any) {

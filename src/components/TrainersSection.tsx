@@ -26,10 +26,10 @@ export default function TrainersSection() {
     retryDelay: 2000
   });
 
-  const loadTrainers = async () => {
+  const loadTrainers = async (signal?: AbortSignal) => {
     try {
       setLoading(true);
-      const trainersData = await getTrainers();
+      const trainersData = await getTrainers(signal);
       
       if (trainersData.length > 0) {
         console.log('Trainers loaded from PocketBase:', trainersData.length, 'records');
@@ -48,12 +48,19 @@ export default function TrainersSection() {
   };
 
   useEffect(() => {
-    loadTrainers();
+    const abortController = new AbortController();
+    
+    loadTrainers(abortController.signal);
+    
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   const handleRetry = () => {
-    retry(loadTrainers);
-  }; // Пустой массив зависимостей
+    const abortController = new AbortController();
+    retry(() => loadTrainers(abortController.signal));
+  };
 
   const openModal = (trainer: Trainer) => {
     setSelectedTrainer(trainer);
