@@ -24,13 +24,15 @@ const nextConfig: NextConfig = {
     ],
     qualities: [25, 50, 75, 90, 100],
   },
-  // Оптимизация для разработки
+  // Оптимизация для production
   eslint: {
-    ignoreDuringBuilds: true, // Отключаем ESLint при сборке для ускорения
+    ignoreDuringBuilds: false, // Включаем ESLint для production
   },
   typescript: {
-    ignoreBuildErrors: true, // Отключаем TypeScript ошибки при сборке
+    ignoreBuildErrors: false, // Включаем TypeScript проверки для production
   },
+  // Исключаем папки из сборки
+  exclude: ['backups/**/*', 'notes_and_docs/**/*'],
   // Настройки для ускорения разработки
   experimental: {
     turbo: {
