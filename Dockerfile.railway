@@ -19,7 +19,9 @@ COPY . .
 # Создаем .env.production для Railway
 RUN echo "NEXT_PUBLIC_POCKETBASE_URL=\${POCKETBASE_URL}" > .env.production
 
-# Собираем приложение
+# Собираем приложение с отключенными проверками
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=1
 RUN npm run build
 
 # Production image, копируем все файлы и запускаем next

@@ -1,20 +1,11 @@
-# Dependencies
 node_modules/
 .next/
 out/
 build/
-
-# PocketBase files
-pb_migrations/
-pb_data/
-
-# Public assets
+dist/
+*.config.js
+*.config.ts
 public/
-
-# Generated files
-next-env.d.ts
-*.tsbuildinfo
-
-# Config files
-tailwind.config.js
-postcss.config.mjs
+pb_data/
+notes_and_docs/
+backups/

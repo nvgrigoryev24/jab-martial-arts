@@ -36,10 +36,10 @@ const nextConfig: NextConfig = {
   
   // Оптимизация для production
   eslint: {
-    ignoreDuringBuilds: true, // Временно отключаем для Docker сборки
+    ignoreDuringBuilds: true, // Отключаем для Railway сборки
   },
   typescript: {
-    ignoreBuildErrors: true, // Временно отключаем для Docker сборки
+    ignoreBuildErrors: true, // Отключаем для Railway сборки
   },
   
   // Новая секция turbopack вместо experimental.turbo
