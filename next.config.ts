@@ -34,12 +34,17 @@ const nextConfig: NextConfig = {
     qualities: [25, 50, 75, 90, 100],
   },
   
-  // Оптимизация для production
+  // Полное отключение проверок для Railway
   eslint: {
-    ignoreDuringBuilds: true, // Отключаем для Railway сборки
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, // Отключаем для Railway сборки
+    ignoreBuildErrors: true,
+  },
+  // Отключаем все проверки
+  experimental: {
+    skipTrailingSlashRedirect: true,
+    skipMiddlewareUrlNormalize: true,
   },
   
   // Новая секция turbopack вместо experimental.turbo
