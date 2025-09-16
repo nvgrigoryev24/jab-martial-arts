@@ -1,0 +1,35 @@
+# Dockerfile для PocketBase
+FROM alpine:latest
+
+# Устанавливаем необходимые пакеты
+RUN apk add --no-cache \
+    ca-certificates \
+    unzip \
+    wget
+
+# Создаем пользователя для PocketBase
+RUN addgroup -g 1001 pocketbase && \
+    adduser -D -s /bin/sh -u 1001 -G pocketbase pocketbase
+
+# Создаем директории
+RUN mkdir -p /pocketbase/pb_data && \
+    chown -R pocketbase:pocketbase /pocketbase
+
+# Копируем PocketBase бинарник (предполагаем, что он уже есть в проекте)
+COPY --chown=pocketbase:pocketbase pocketbase /pocketbase/pocketbase
+RUN chmod +x /pocketbase/pocketbase
+
+# Копируем данные PocketBase если они есть
+COPY --chown=pocketbase:pocketbase pb_data/ /pocketbase/pb_data/
+COPY --chown=pocketbase:pocketbase pb_migrations/ /pocketbase/pb_migrations/
+
+# Переключаемся на пользователя pocketbase
+USER pocketbase
+
+WORKDIR /pocketbase
+
+# Открываем порт
+EXPOSE 8090
+
+# Запускаем PocketBase
+CMD ["./pocketbase", "serve", "--http=0.0.0.0:8090"]

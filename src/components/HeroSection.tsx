@@ -30,11 +30,9 @@ export default function HeroSection() {
       const content = await getHeroContent();
       
       if (content) {
-        console.log('Hero content loaded from PocketBase');
         setHeroContent(content);
         hideMaintenance();
       } else {
-        console.log('No hero content found in PocketBase');
         showMaintenance();
       }
     } catch (error) {

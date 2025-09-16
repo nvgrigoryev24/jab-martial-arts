@@ -396,23 +396,25 @@ export interface FooterContact {
 
 
 // Функции для работы с данными
-export const getTrainers = async (signal?: AbortSignal): Promise<Trainer[]> => {
+export const getTrainers = async (): Promise<Trainer[]> => {
   try {
     const records = await pb.collection('coaches').getFullList<Trainer>({
       filter: 'is_active = true',
       sort: 'sort_order'
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запроса
-    if (error instanceof Error && (error.name === 'AbortError' || error.message?.includes('autocancelled'))) {
-      console.log('Trainers request cancelled, returning empty array');
-      return []; // Возвращаем пустой массив вместо пробрасывания ошибки
+    const err = error as Error & { status?: number };
+    console.error('getTrainers error:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
+    if (err.name === 'AbortError' || err.message?.includes('autocancelled')) {
+      console.log('Trainers request cancelled');
+      return [];
     }
-    console.error('Error fetching trainers:', error);
     return [];
   }
 };
@@ -434,30 +436,30 @@ export const getTrainersServer = async (): Promise<Trainer[]> => {
   }
 };
 
-export const getLocations = async (signal?: AbortSignal): Promise<Location[]> => {
+export const getLocations = async (): Promise<Location[]> => {
   try {
     const records = await pb.collection('locations').getFullList<Location>({
       filter: 'is_active = true',
       sort: 'sort_order'
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     
-    console.log('Locations loaded from PocketBase:', records.length, 'records');
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error instanceof Error && (error.message?.includes('autocancelled') || error.message?.includes('cancelled'))) {
+    const err = error as Error & { status?: number };
+    console.error('getLocations error:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       console.log('Locations request cancelled');
       return [];
     }
-    // Игнорируем ошибки отсутствия коллекции (404)
-    if ((error as { status?: number })?.status === 404 || (error instanceof Error && error.message?.includes('Missing collection context'))) {
-      console.log('Locations collection not found (404), using mock data');
+    if (err.status === 404 || err.message?.includes('Missing collection context')) {
+      console.log('Locations collection not found (404)');
       return [];
     }
-    console.error('Error fetching locations:', error);
     return [];
   }
 };
@@ -471,11 +473,15 @@ export const getHeroContent = async (): Promise<HeroContent | null> => {
     });
     return records.length > 0 ? records[0] : null;
   } catch (error: unknown) {
-    // Игнорируем ошибки автоперезагрузки Next.js
-    if (error?.status === 0 && error?.message?.includes('autocancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.status === 0 && err.message?.includes('autocancelled')) {
       return null;
     }
-    console.error('Error fetching hero content:', error);
+    console.error('Error fetching hero content:', {
+      name: err.name,
+      message: err.message,
+      status: err.status
+    });
     return null;
   }
 };
@@ -489,115 +495,124 @@ export const getAboutPage = async (): Promise<AboutPage | null> => {
     });
     return records.length > 0 ? records[0] : null;
   } catch (error: unknown) {
-    // Игнорируем ошибки автоперезагрузки Next.js
-    if (error?.status === 0 && error?.message?.includes('autocancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.status === 0 && err.message?.includes('autocancelled')) {
       return null;
     }
-    console.error('Error fetching about page:', error);
+    console.error('Error fetching about page:', {
+      name: err.name,
+      message: err.message,
+      status: err.status
+    });
     return null;
   }
 };
 
-export const getAboutCards = async (signal?: AbortSignal): Promise<AboutCard[]> => {
+export const getAboutCards = async (): Promise<AboutCard[]> => {
   try {
     const records = await pb.collection('about_cards').getFullList<AboutCard>({
       filter: 'is_active = true',
       sort: 'sort_order'
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error;
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
-    console.error('Error fetching about cards:', error);
+    console.error('Error fetching about cards:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return [];
   }
 };
 
-export const getCTABanner = async (signal?: AbortSignal): Promise<CTABanner | null> => {
+export const getCTABanner = async (): Promise<CTABanner | null> => {
   try {
     const records = await pb.collection('cta_banner').getFullList<CTABanner>({
       filter: 'is_active = true',
       sort: 'sort_order',
       limit: 1
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records.length > 0 ? records[0] : null;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error;
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return null;
     }
-    console.error('Error fetching CTA banner:', error);
+    console.error('Error fetching CTA banner:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return null;
   }
 };
 
-export const getPromoSection = async (signal?: AbortSignal): Promise<PromoSection | null> => {
+export const getPromoSection = async (): Promise<PromoSection | null> => {
   try {
     const records = await pb.collection('promo_section').getFullList<PromoSection>({
       filter: 'is_active = true',
       sort: 'sort_order',
       limit: 1
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records.length > 0 ? records[0] : null;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error;
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return null;
     }
-    console.error('Error fetching promo section:', error);
+    console.error('Error fetching promo section:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return null;
   }
 };
 
-export const getFAQCategories = async (signal?: AbortSignal): Promise<FAQCategory[]> => {
+export const getFAQCategories = async (): Promise<FAQCategory[]> => {
   try {
     const records = await pb.collection('faq_categories').getFullList<FAQCategory>({
       filter: 'is_active = true',
       expand: 'color_theme',
       sort: 'sort_order'
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error;
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
-    console.error('Error fetching FAQ categories:', error);
+    console.error('Error fetching FAQ categories:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return [];
   }
 };
 
-export const getFAQs = async (signal?: AbortSignal): Promise<FAQ[]> => {
+export const getFAQs = async (): Promise<FAQ[]> => {
   try {
     const records = await pb.collection('faq').getFullList<FAQ>({
       filter: 'is_active = true',
       expand: 'faq_category.color_theme',
       sort: 'sort_order'
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error;
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
-    console.error('Error fetching FAQs:', error);
+    console.error('Error fetching FAQs:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return [];
   }
 };
@@ -610,11 +625,15 @@ export const getColorThemes = async (): Promise<ColorTheme[]> => {
     });
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки автоперезагрузки Next.js
-    if (error?.status === 0 && error?.message?.includes('autocancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.status === 0 && err.message?.includes('autocancelled')) {
       return [];
     }
-    console.error('Error fetching color themes:', error);
+    console.error('Error fetching color themes:', {
+      name: err.name,
+      message: err.message,
+      status: err.status
+    });
     return [];
   }
 };
@@ -628,11 +647,15 @@ export const getTrainingLevels = async (): Promise<TrainingLevel[]> => {
     });
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки автоперезагрузки Next.js
-    if (error?.status === 0 && error?.message?.includes('autocancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.status === 0 && err.message?.includes('autocancelled')) {
       return [];
     }
-    console.error('Error fetching training levels:', error);
+    console.error('Error fetching training levels:', {
+      name: err.name,
+      message: err.message,
+      status: err.status
+    });
     return [];
   }
 };
@@ -645,54 +668,62 @@ export const getSchedule = async (): Promise<Schedule[]> => {
       sort: 'day,sort_order,start_time'
     });
     
-    
     return records;
   } catch (error: unknown) {
+    console.error('Error fetching schedule:', error);
     // Игнорируем ошибки автоперезагрузки Next.js
-    if (error?.status === 0 && error?.message?.includes('autocancelled')) {
+    if ((error as any)?.status === 0 && (error as Error)?.message?.includes('autocancelled')) {
       return [];
     }
-    console.error('Error fetching schedule:', error);
     return [];
   }
 };
 
 
-export const getPricingPlans = async (signal?: AbortSignal): Promise<PricingPlan[]> => {
+export const getPricingPlans = async (): Promise<PricingPlan[]> => {
   try {
     const records = await pb.collection('pricing_plans').getFullList<PricingPlan>({
       filter: 'is_active = true',
       sort: 'sort_order'
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
     });
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error;
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
+    console.error('Error fetching pricing plans:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return [];
   }
 };
 
 export const getNews = async (signal?: AbortSignal): Promise<News[]> => {
   try {
-    const records = await pb.collection('news').getFullList<News>({
+    const options: any = {
       filter: 'is_published = true',
       sort: 'sort_order',
       expand: 'category,author,reactions,category.color_theme'
-    }, {
-      signal, // Передаем AbortSignal
-      autoCancellation: false // Отключаем автоканцелляцию
-    });
+    };
+    const requestOptions: any = { autoCancellation: false };
+    if (signal) {
+      requestOptions.signal = signal;
+    }
+    const records = await pb.collection('news').getFullList<News>(options, requestOptions);
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error;
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
+    console.error('Error fetching news:', {
+      name: err.name,
+      message: err.message,
+      stack: err.stack
+    });
     return [];
   }
 };
@@ -705,7 +736,7 @@ export const getNewsById = async (id: string, signal?: AbortSignal): Promise<New
     });
     return record;
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    if (error instanceof Error && (error.message?.includes('autocancelled') || error.message?.includes('cancelled'))) {
       return null;
     }
     return null;
@@ -1030,22 +1061,31 @@ export const getLevelColorStyles = (schedule: Schedule): { className: string; st
 // Функции для работы с Hall of Fame
 export const getHallOfFame = async (signal?: AbortSignal): Promise<HallOfFame[]> => {
   try {
-    const records = await pb.collection('hall_of_fame').getFullList<HallOfFame>({
+    const options: any = {
       filter: 'is_active = true',
       sort: 'rank'
-    });
+    };
+    const requestOptions: any = { autoCancellation: false };
+    if (signal) {
+      requestOptions.signal = signal;
+    }
+    const records = await pb.collection('hall_of_fame').getFullList<HallOfFame>(options, requestOptions);
     return records;
   } catch (error: unknown) {
-    // Игнорируем ошибки отмены запросов
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
-    // Игнорируем ошибки отсутствия коллекции (404)
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
-      console.log('Hall of fame collection not found, using mock data');
+    if (err.status === 404 || err.message?.includes('Missing collection context')) {
+      console.log('Hall of fame collection not found');
       return [];
     }
-    console.error('Error fetching hall of fame:', error);
+    console.error('Error fetching hall of fame:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
     return [];
   }
 };
@@ -1154,13 +1194,14 @@ export const getPreloaderSettings = async (signal?: AbortSignal): Promise<Preloa
       return null;
     }
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    if (error instanceof Error && (error.message?.includes('autocancelled') || error.message?.includes('cancelled'))) {
       return null;
     }
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+    const err = error as any;
+    if (err.status === 404 || (error instanceof Error && error.message?.includes('Missing collection context'))) {
       return null;
     }
-    if (error.status === 400) {
+    if (err.status === 400) {
       return null;
     }
     console.error('Error fetching preloader settings:', error);
@@ -1177,10 +1218,11 @@ export const getNavigationLinks = async (signal?: AbortSignal): Promise<Navigati
     });
     return records;
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    if (error instanceof Error && (error.message?.includes('autocancelled') || error.message?.includes('cancelled'))) {
       return [];
     }
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
+    const err = error as any;
+    if (err.status === 404 || (error instanceof Error && error.message?.includes('Missing collection context'))) {
       console.log('Navigation links collection not found, using default data');
       return [];
     }
@@ -1189,7 +1231,7 @@ export const getNavigationLinks = async (signal?: AbortSignal): Promise<Navigati
   }
 };
 
-export const getHeaderContent = async (signal?: AbortSignal): Promise<HeaderContent | null> => {
+export const getHeaderContent = async (): Promise<HeaderContent | null> => {
   try {
     const records = await pb.collection('header_content').getFullList<HeaderContent>({
       filter: 'is_active = true',
@@ -1198,19 +1240,25 @@ export const getHeaderContent = async (signal?: AbortSignal): Promise<HeaderCont
     });
     return records.length > 0 ? records[0] : null;
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return null;
     }
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
-      console.log('Header content collection not found, using default data');
+    if (err.status === 404 || err.message?.includes('Missing collection context')) {
+      console.log('Header content collection not found');
       return null;
     }
-    console.error('Error fetching header content:', error);
+    console.error('Error fetching header content:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
     return null;
   }
 };
 
-export const getSocialLinks = async (signal?: AbortSignal): Promise<SocialLink[]> => {
+export const getSocialLinks = async (): Promise<SocialLink[]> => {
   try {
     const records = await pb.collection('social_links').getFullList<SocialLink>({
       filter: 'is_active = true',
@@ -1218,14 +1266,20 @@ export const getSocialLinks = async (signal?: AbortSignal): Promise<SocialLink[]
     });
     return records;
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
-      console.log('Social links collection not found, using default data');
+    if (err.status === 404 || err.message?.includes('Missing collection context')) {
+      console.log('Social links collection not found');
       return [];
     }
-    console.error('Error fetching social links:', error);
+    console.error('Error fetching social links:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
     return [];
   }
 };
@@ -1233,61 +1287,94 @@ export const getSocialLinks = async (signal?: AbortSignal): Promise<SocialLink[]
 // Функции для работы с данными футера
 export const getFooterContent = async (signal?: AbortSignal): Promise<FooterContent | null> => {
   try {
-    const records = await pb.collection('footer_content').getFullList<FooterContent>({
+    const options: any = {
       filter: 'is_active = true',
       sort: 'created',
       limit: 1
-    });
+    };
+    const requestOptions: any = { autoCancellation: false };
+    if (signal) {
+      requestOptions.signal = signal;
+    }
+    const records = await pb.collection('footer_content').getFullList<FooterContent>(options, requestOptions);
     return records.length > 0 ? records[0] : null;
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return null;
     }
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
-      console.log('Footer content collection not found, using default data');
+    if (err.status === 404 || err.message?.includes('Missing collection context')) {
+      console.log('Footer content collection not found');
       return null;
     }
-    console.error('Error fetching footer content:', error);
+    console.error('Error fetching footer content:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
     return null;
   }
 };
 
 export const getFooterLinks = async (signal?: AbortSignal): Promise<FooterLink[]> => {
   try {
-    const records = await pb.collection('footer_links').getFullList<FooterLink>({
+    const options: any = {
       filter: 'is_active = true',
       sort: 'sort_order'
-    });
+    };
+    const requestOptions: any = { autoCancellation: false };
+    if (signal) {
+      requestOptions.signal = signal;
+    }
+    const records = await pb.collection('footer_links').getFullList<FooterLink>(options, requestOptions);
     return records;
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
-      console.log('Footer links collection not found, using default data');
+    if (err.status === 404 || err.message?.includes('Missing collection context')) {
+      console.log('Footer links collection not found');
       return [];
     }
-    console.error('Error fetching footer links:', error);
+    console.error('Error fetching footer links:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
     return [];
   }
 };
 
 export const getFooterContacts = async (signal?: AbortSignal): Promise<FooterContact[]> => {
   try {
-    const records = await pb.collection('footer_contacts').getFullList<FooterContact>({
+    const options: any = {
       filter: 'is_active = true',
       sort: 'sort_order'
-    });
+    };
+    const requestOptions: any = { autoCancellation: false };
+    if (signal) {
+      requestOptions.signal = signal;
+    }
+    const records = await pb.collection('footer_contacts').getFullList<FooterContact>(options, requestOptions);
     return records;
   } catch (error: unknown) {
-    if (error.message?.includes('autocancelled') || error.message?.includes('cancelled')) {
+    const err = error as Error & { status?: number };
+    if (err.message?.includes('autocancelled') || err.message?.includes('cancelled')) {
       return [];
     }
-    if (error.status === 404 || error.message?.includes('Missing collection context')) {
-      console.log('Footer contacts collection not found, using default data');
+    if (err.status === 404 || err.message?.includes('Missing collection context')) {
+      console.log('Footer contacts collection not found');
       return [];
     }
-    console.error('Error fetching footer contacts:', error);
+    console.error('Error fetching footer contacts:', {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      stack: err.stack
+    });
     return [];
   }
 };

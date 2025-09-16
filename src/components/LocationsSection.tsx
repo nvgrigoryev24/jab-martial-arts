@@ -30,11 +30,9 @@ const LocationsSection: React.FC = () => {
       const data = await getLocations();
       
       if (data.length > 0) {
-        console.log('Locations loaded from PocketBase:', data.length, 'records');
         setLocations(data);
         hideMaintenance();
       } else {
-        console.log('No active locations found in PocketBase');
         showMaintenance();
       }
     } catch (err) {

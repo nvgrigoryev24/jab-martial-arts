@@ -22,9 +22,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     const fetchSettings = async () => {
       try {
         setLoading(true);
-        console.log('Loading preloader settings...');
         const data = await getPreloaderSettings(abortController.signal);
-        console.log('Preloader settings loaded:', data);
         setSettings(data);
       } catch (error) {
         console.error('Error loading preloader settings:', error);
@@ -41,11 +39,8 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   }, []);
 
   useEffect(() => {
-    console.log('Preloader useEffect triggered:', { loading, settings });
-    
-    // Временно упрощаем логику - всегда завершаем через 3 секунды
+    // Завершаем через 3 секунды
     const timeout = setTimeout(() => {
-      console.log('Preloader timeout completed, hiding preloader...');
       setIsVisible(false);
       onComplete();
     }, 3000);

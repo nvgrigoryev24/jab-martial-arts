@@ -32,12 +32,10 @@ export default function AboutSection() {
       ]);
       
       if (pageData && cardsData.length > 0) {
-        console.log('About data loaded from PocketBase:', cardsData.length, 'cards');
         setAboutPage(pageData);
         setAboutCards(cardsData);
         hideMaintenance();
       } else {
-        console.log('No about data found in PocketBase');
         showMaintenance();
       }
     } catch (error) {

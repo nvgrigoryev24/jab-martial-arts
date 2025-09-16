@@ -61,14 +61,12 @@ export default function ScheduleSection() {
       ]);
       
       if (scheduleData.length > 0) {
-        console.log('Schedule data loaded from PocketBase:', scheduleData.length, 'records');
         setSchedule(scheduleData);
         setColorThemes(themesData);
         setTrainingLevels(levelsData);
         setAllLocations(locationsData);
         hideMaintenance();
       } else {
-        console.log('No schedule data found in PocketBase');
         showMaintenance();
       }
     } catch (error) {

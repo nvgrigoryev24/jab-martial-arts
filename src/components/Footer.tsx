@@ -3,13 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  getFooterContent, 
-  getFooterLinks, 
-  getFooterContacts, 
-  getImageUrl,
-  FooterContent, 
-  FooterLink, 
+import PocketBase from 'pocketbase';
+import {
+  FooterContent,
+  FooterLink,
   FooterContact
 } from '@/lib/pocketbase';
 import { useSocialLinks } from '@/contexts/SocialLinksContext';
@@ -19,27 +16,65 @@ export default function Footer() {
   const [footerLinks, setFooterLinks] = useState<FooterLink[]>([]);
   const [footerContacts, setFooterContacts] = useState<FooterContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pbInstance, setPbInstance] = useState<PocketBase | null>(null);
   
   // Используем контекст для социальных ссылок
   const { socialLinks, isLoading: socialLinksLoading } = useSocialLinks();
 
+  // Инициализация PocketBase
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090');
+    setPbInstance(pb);
+    
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
+
   // Загрузка данных из PocketBase
   useEffect(() => {
+    if (!pbInstance) return;
+    
     const abortController = new AbortController();
+    
+    // Создаем кастомный fetch с поддержкой AbortSignal
+    const customFetch = (url: RequestInfo | URL, config?: RequestInit) => {
+      return fetch(url, {
+        ...config,
+        signal: abortController.signal
+      });
+    };
     
     const loadFooterData = async () => {
       try {
         const [content, links, contacts] = await Promise.all([
-          getFooterContent(abortController.signal),
-          getFooterLinks(abortController.signal),
-          getFooterContacts(abortController.signal)
+          pbInstance.collection('footer_content').getFirstListItem<FooterContent>('is_active = true', {
+            fetch: customFetch
+          }),
+          pbInstance.collection('footer_links').getFullList<FooterLink>({
+            filter: 'is_active = true',
+            sort: 'sort_order',
+            fetch: customFetch
+          }),
+          pbInstance.collection('footer_contacts').getFullList<FooterContact>({
+            filter: 'is_active = true',
+            sort: 'sort_order',
+            fetch: customFetch
+          })
         ]);
         
         setFooterContent(content);
         setFooterLinks(links);
         setFooterContacts(contacts);
       } catch (error) {
-        console.error('Error loading footer data:', error);
+        const err = error as Error;
+        if (err.message?.includes('autocancelled') || err.message?.includes('cancelled') || err.name === 'AbortError') {
+          console.log('Footer data request cancelled');
+        } else {
+          console.error('Error loading footer data:', err);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -50,7 +85,7 @@ export default function Footer() {
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [pbInstance]);
   return (
     <footer className="relative text-white py-16 border-t border-red-500/20 overflow-hidden">
       {/* Фоновый градиент */}
@@ -97,7 +132,7 @@ export default function Footer() {
                   {socialLinks.length > 0 ? (
                     socialLinks.map((social) => {
                       const hasIcon = social.icon && social.icon.trim() !== '';
-                      const imageUrl = hasIcon ? getImageUrl(social, social.icon) : '';
+                      const imageUrl = hasIcon && pbInstance ? pbInstance.files.getURL(social, social.icon) : '';
                       
                       return (
                         <a

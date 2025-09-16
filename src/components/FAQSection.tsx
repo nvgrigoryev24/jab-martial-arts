@@ -34,12 +34,10 @@ export default function FAQSection() {
       ]);
       
       if (categoriesData.length > 0 && faqsData.length > 0) {
-        console.log('FAQ data loaded from PocketBase:', categoriesData.length, 'categories,', faqsData.length, 'faqs');
         setFaqCategories(categoriesData);
         setFaqs(faqsData);
         hideMaintenance();
       } else {
-        console.log('No FAQ data found in PocketBase');
         showMaintenance();
       }
     } catch (error: unknown) {

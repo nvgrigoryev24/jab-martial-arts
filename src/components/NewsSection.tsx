@@ -45,7 +45,6 @@ export default function NewsSection() {
       const news = await getNews();
       
       if (news.length > 0) {
-        console.log('News loaded from PocketBase:', news.length, 'records');
         setNewsData(news);
         
         // Инициализируем счетчики реакций из PocketBase
@@ -56,7 +55,6 @@ export default function NewsSection() {
         setReactionCounts(initialCounts);
         hideMaintenance();
       } else {
-        console.log('No news found in PocketBase');
         showMaintenance();
       }
     } catch (error) {

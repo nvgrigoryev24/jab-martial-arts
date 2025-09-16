@@ -36,11 +36,9 @@ const HallOfFameSection: React.FC = () => {
       const data = await getHallOfFame();
       
       if (data.length > 0) {
-        console.log('Hall of fame loaded from PocketBase:', data.length, 'records');
         setAthletes(data);
         hideMaintenance();
       } else {
-        console.log('No hall of fame data found in PocketBase');
         showMaintenance();
       }
     } catch (err) {

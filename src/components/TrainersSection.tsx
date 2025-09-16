@@ -32,11 +32,9 @@ export default function TrainersSection() {
       const trainersData = await getTrainers(signal);
       
       if (trainersData.length > 0) {
-        console.log('Trainers loaded from PocketBase:', trainersData.length, 'records');
         setTrainers(trainersData);
         hideMaintenance();
       } else {
-        console.log('No trainers found in PocketBase');
         showMaintenance();
       }
     } catch (error) {

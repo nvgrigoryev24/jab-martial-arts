@@ -1216,3 +1216,17 @@ section[id] {
 .animate-peek {
   animation: peek 2.5s ease-in-out;
 }
+
+/* Disable expensive effects during scrolling */
+html[data-scrolling] * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Optional: ignore pointer events for hover-only decorations while scrolling */
+html[data-scrolling] .hover\:scale-105:hover,
+html[data-scrolling] .hover\:shadow-*,
+html[data-scrolling] .group:hover *,
+html[data-scrolling] [data-hover-heavy] {
+  pointer-events: none !important;
+}
